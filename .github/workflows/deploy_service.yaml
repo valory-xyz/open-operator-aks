@@ -1,0 +1,87 @@
+name: Deploy service
+
+on:
+  release:
+    types: [published]
+
+jobs:
+  deploy-infra:
+    environment: production
+    env:
+      SERVICE_REPO_URL: ${{ vars.SERVICE_REPO_URL }}
+      SERVICE_REPO_TAG: ${{ vars.SERVICE_REPO_TAG }}
+      SERVICE_ID: ${{ vars.SERVICE_ID }}
+      GH_TOKEN: ${{ secrets.GH_TOKEN }}
+      KEYS_JSON: ${{ secrets.KEYS_JSON }}
+    runs-on: ubuntu-latest
+    name: Deploy infrastructure to AWS
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Generate the service deployment script
+        env:
+          VARS_CONTEXT: ${{ toJson(secrets) }}
+          SECRETS_CONTEXT: ${{ toJson(secrets) }}      
+        run: |
+          ./scripts/generate_service_deployment_script.sh
+
+      - name: Set up AWS CLI
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-east-2
+
+      - name: Derive SSH public key from private key for the AWS EC2 instance
+        run: |
+          OPERATOR_SSH_PUBLIC_KEY=$(ssh-keygen -y -f <(echo "${{ secrets.OPERATOR_SSH_PRIVATE_KEY }}"))
+          echo "TF_VAR_operator_ssh_pub_key=$OPERATOR_SSH_PUBLIC_KEY" >> "$GITHUB_ENV"
+
+      - name: Set up Terraform Version
+        uses: hashicorp/setup-terraform@v2
+        with:
+          terraform_version: 1.4.6
+          terraform_wrapper: false
+
+      - name: Terraform Init
+        run: |
+          cd cloud_resources/aws/docker-compose
+          terraform init -backend-config="bucket=${{ vars.TFSTATE_S3_BUCKET }}" -no-color
+
+      - name: Terraform Plan
+        run: |
+          cd cloud_resources/aws/docker-compose
+          terraform plan -no-color
+
+      - name: Terraform Deploy
+        run: |
+          cd cloud_resources/aws/docker-compose
+          terraform apply -auto-approve -no-color
+          echo "INSTANCE_ID=$(terraform output -raw instance_id)" >> "$GITHUB_ENV"
+          echo "INSTANCE_PUBLIC_IP=$(terraform output -raw instance_public_ip)" >> "$GITHUB_ENV"
+
+      - name: Wait for the AWS EC2 instance status OK
+        run: |
+          #echo "wait ommited"
+          aws ec2 wait instance-status-ok --instance-ids ${{ env.INSTANCE_ID }}
+  
+      - name: Copy and execute the service deployment script on the AWS EC2 instance
+        run: | 
+          mkdir -p ~/.ssh
+          echo "${{ secrets.OPERATOR_SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+          cat ~/.ssh/id_rsa
+          scp -v -o StrictHostKeyChecking=no -i ~/.ssh/id_rsa ./deploy_service.sh ubuntu@${{ env.INSTANCE_PUBLIC_IP }}:~
+          ssh -v -o StrictHostKeyChecking=no -i ~/.ssh/id_rsa ubuntu@${{ env.INSTANCE_PUBLIC_IP }} 'nohup ~/deploy_service.sh > deploy_service.log 2>&1 &'
+
+      - name: Summary
+        run: |
+          echo "Summary:"
+          echo "Service repository URL: $SERVICE_REPO_URL"
+          echo "Service repository tag: $SERVICE_REPO_TAG"
+          echo "Service ID: $SERVICE_ID"
+          echo "AWS EC2 instance public IP: ${{ env.INSTANCE_PUBLIC_IP }}"
+          echo "AWS EC2 instance ID: ${{ env.INSTANCE_ID }}"
+          echo ""
+          echo "Please wait until the AWS EC2 instance finishes completing the service deployment."
