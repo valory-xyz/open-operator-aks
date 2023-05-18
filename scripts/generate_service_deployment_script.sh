@@ -54,7 +54,7 @@ parse_env_file() {
 
     if [[ -z "${JSON// }" ]]; then
         echo "   - JSON object undefined. Ignoring."
-        return
+        JSON="{}"
     fi
 
     # Read variables
