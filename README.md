@@ -21,6 +21,8 @@ This repository contains tooling to deploy an agent instance for the Autonomous 
 
 You can deploy the agent instance either using using GitHub actions or cloning the repository locally on your machine and executing the steps manually.
 
+#### Table of contents
+
 - [Prerequisites](#prerequisites)
 - [Deploy the service using GitHub actions](#deploy-the-service-using-github-actions)
 - [Deploy the service manually](#deploy-the-service-manually)
