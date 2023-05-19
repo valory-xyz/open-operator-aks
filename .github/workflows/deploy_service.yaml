@@ -7,20 +7,18 @@ on:
 jobs:
   deploy-infra:
     environment: production
-    env:
-      SERVICE_REPO_URL: ${{ vars.SERVICE_REPO_URL }}
-      SERVICE_REPO_TAG: ${{ vars.SERVICE_REPO_TAG }}
-      SERVICE_ID: ${{ vars.SERVICE_ID }}
-      GH_TOKEN: ${{ secrets.GH_TOKEN }}
-      KEYS_JSON: ${{ secrets.KEYS_JSON }}
     runs-on: ubuntu-latest
-    name: Deploy infrastructure to AWS
+    name: Deploy infrastructure and service to AWS
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
 
       - name: Generate the service deployment script
         env:
+          SERVICE_REPO_URL: ${{ vars.SERVICE_REPO_URL }}
+          SERVICE_REPO_TAG: ${{ vars.SERVICE_REPO_TAG }}
+          SERVICE_ID: ${{ vars.SERVICE_ID }}
+          GH_TOKEN: ${{ secrets.GH_TOKEN }}          
           VARS_CONTEXT: ${{ toJson(secrets) }}
           SECRETS_CONTEXT: ${{ toJson(secrets) }}      
         run: |
@@ -78,10 +76,10 @@ jobs:
       - name: Summary
         run: |
           echo "Summary:"
-          echo "Service repository URL: $SERVICE_REPO_URL"
-          echo "Service repository tag: $SERVICE_REPO_TAG"
-          echo "Service ID: $SERVICE_ID"
-          echo "AWS EC2 instance public IP: ${{ env.INSTANCE_PUBLIC_IP }}"
-          echo "AWS EC2 instance ID: ${{ env.INSTANCE_ID }}"
+          echo " - Service repository URL: ${{ vars.SERVICE_REPO_URL }}"
+          echo " - Service repository tag: ${{ vars.SERVICE_REPO_TAG }}"
+          echo " - Service ID: ${{ vars.SERVICE_ID }}"
+          echo " - AWS EC2 instance public IP: ${{ env.INSTANCE_PUBLIC_IP }}"
+          echo " - AWS EC2 instance ID: ${{ env.INSTANCE_ID }}"
           echo ""
           echo "Please wait until the AWS EC2 instance finishes completing the service deployment."

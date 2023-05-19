@@ -24,12 +24,19 @@
 # 
 # Requires the following environment variables:
 #   - SERVICE_REPO_URL: Service repository URL.
-#   - SERVICE_REPO_TAG: (Optional) Tag of the service release to be deployed.
-#       If not defined, the script will automatically collect the latest tag.
 #   - SERVICE_ID: Public ID of the service found in SERVICE_REPO_URL.
-#   - KEYS_JSON: JSON containing the agent keys.
-#   - GH_TOKEN: (Optional) Github personal access token, required to access
-#       private repositories.
+#   - (Optional) SERVICE_REPO_TAG: Tag of the service release to be deployed.
+#     If not defined, the script will automatically collect the latest tag.
+#   - (Optional) GH_TOKEN: Github personal access token, required to access
+#     private repositories.
+#   - (Optional) VARS_CONTEXT: JSON context with Github variables.
+#   - (Optional) SECRETS_CONTEXT: JSON context with Github secrets.
+#
+# Notes:
+#   - Service variables are read from the file "./config/service_vars.env" and
+#     overriden if the identifier is found in any context.
+#   - keys.json context is read from the file "./config/keys.json" and
+#     overriden if the identifier KEYS_JSON is found in any context.
 
 
 parse_env_file() {
@@ -44,7 +51,7 @@ parse_env_file() {
     JSON="$2"
     #DEPLOY_SERVICE_SCRIPT="$3"
 
-    echo " - Parsing .env file \"$ENV_FILE\""
+    echo "   - Parsing .env file \"$ENV_FILE\""
 
     # Sanitize inputs
     if [[ ! -f "$ENV_FILE" ]]; then
@@ -53,7 +60,6 @@ parse_env_file() {
     fi
 
     if [[ -z "${JSON// }" ]]; then
-        echo "   - JSON object undefined. Ignoring."
         JSON="{}"
     fi
 
@@ -66,7 +72,7 @@ parse_env_file() {
 
         # Override variables in $VARS if existing in JSON
         if [[ -n "$VAR_VALUE}" ]] && grep -q "$VAR_NAME" <<< "$VARS"; then
-            echo "   - Applying variable override: $VAR_NAME=$VAR_VALUE"
+            echo "     - Overriding variable $VAR_NAME"
             VARS=$(echo "$VARS" | sed "s#export $VAR_NAME=.*#export $VAR_NAME=\"$VAR_VALUE\"#")
         fi
     done
@@ -75,6 +81,10 @@ parse_env_file() {
 }
 
 
+
+# ==================
+# Script starts here
+# ==================
 echo "----------------------------"
 echo "Generating deployment script"
 echo "----------------------------"
@@ -84,13 +94,19 @@ echo " - SERVICE_REPO_URL=$SERVICE_REPO_URL"
 echo " - SERVICE_REPO_TAG=$SERVICE_REPO_TAG"
 echo " - SERVICE_ID=$SERVICE_ID"
 echo " - GH_TOKEN=$GH_TOKEN"
-echo " - KEYS_JSON=$KEYS_JSON"
 echo 
 echo "Steps:"
 
+# ------------------------------------------------------------------------------
 OWNER=$(echo "$SERVICE_REPO_URL" | cut -d'/' -f4)
 REPO=$(echo "$SERVICE_REPO_URL" | cut -d'/' -f5)
 API_URL="https://api.github.com/repos/$OWNER/$REPO"
+DEPLOY_SERVICE_SCRIPT="deploy_service.sh"
+SERVICE_VARIABLES_FILE="./config/service_vars.env"
+SERVICE_KEYS_JSON_FILE="./config/keys.json"
+
+# ------------------------------------------------------------------------------
+echo " - Testing repository access"
 
 if [[ -z "${GH_TOKEN// }" ]]; then
   HEADERS=(-H "Accept: application/vnd.github+json")
@@ -98,21 +114,14 @@ else
   HEADERS=(-H "Accept: application/vnd.github+json" -H "Authorization: token $GH_TOKEN")
 fi
 
-
-
-
-echo " - Testing repository access"
-
 response=$(curl -s -o /dev/null -w "%{http_code}" "${HEADERS[@]}" "$API_URL")
 
 if [ "$response" -ne 200 ]; then
-  echo "Error: Access to repository \"$SERVICE_REPO_URL\" failed. Please check the access token (GH_TOKEN) and repository URL (SERVICE_REPO_URL)."
+  echo "Error: Access to repository \"$SERVICE_REPO_URL\" failed (response $response). Please check the access token (GH_TOKEN) and repository URL (SERVICE_REPO_URL)."
   exit 1
 fi
 
-
-
-
+# ------------------------------------------------------------------------------
 echo " - Retrieving repository tag"
 
 if [ -z "${SERVICE_REPO_TAG// }" ]; then
@@ -129,9 +138,7 @@ if ! echo "$response" | grep -q "\"name\": \"$SERVICE_REPO_TAG\""; then
   exit 1
 fi
 
-
-
-
+# ------------------------------------------------------------------------------
 echo " - Retrieving \"packages/packages.json\""
 PACKAGES_JSON=$(curl -s "${HEADERS[@]}" "https://raw.githubusercontent.com/$OWNER/$REPO/$SERVICE_REPO_TAG/packages/packages.json")
 
@@ -141,9 +148,7 @@ if ! echo "$PACKAGES_JSON" | jq -e . >/dev/null 2>&1; then
   exit 1
 fi
 
-
-
-
+# ------------------------------------------------------------------------------
 echo " - Retrieving service hash"
 SERVICE_HASH=$(echo "$PACKAGES_JSON" | jq -r ".dev.\"service/$SERVICE_ID\"")
 echo "   - Service hash: $SERVICE_HASH"
@@ -154,12 +159,32 @@ if [[ ! $SERVICE_HASH =~ ^ba[a-zA-Z0-9]{57}$ ]]; then
   exit 1
 fi
 
-
-
-
-DEPLOY_SERVICE_SCRIPT="deploy_service.sh"
-
+# ------------------------------------------------------------------------------
 echo " - Writing contents to \"$DEPLOY_SERVICE_SCRIPT\""
+
+if [[ -z "${VARS_CONTEXT// }" ]]; then
+    VARS_CONTEXT="{}"
+fi
+
+if [[ -z "${SECRETS_CONTEXT// }" ]]; then
+    SECRETS_CONTEXT="{}"
+fi
+
+echo "   - Joining context variables into a single JSON"
+SERVICE_VARIABLES_OVERRIDES=$(echo "$VARS_CONTEXT $SECRETS_CONTEXT" | jq -s add)
+
+echo "   - Setting the contents of keys file (\"keys.json\")"
+KEYS_JSON=""
+if [[ $(echo "$SERVICE_VARIABLES_OVERRIDES" | jq '.KEYS_JSON') != "null" ]]; then
+  echo "     - Set \"keys.json\" to context variable KEYS_JSON"
+  KEYS_JSON=$(echo "$SERVICE_VARIABLES_OVERRIDES" | jq -r '.KEYS_JSON')
+elif [ -f $SERVICE_KEYS_JSON_FILE ]; then
+  echo "     - Set \"keys.json\" to file contents \"$SERVICE_KEYS_JSON_FILE\""
+  KEYS_JSON=$(<$SERVICE_KEYS_JSON_FILE)
+else
+  echo "Error: \"keys.json\" not defined in context variable KEYS_JSON nor in file \"$SERVICE_KEYS_JSON_FILE\"."
+  exit 1
+fi
 
 echo "echo \"Current user: \$(whoami)\"
 export PATH=\"\$PATH:/home/ubuntu/.local/bin\"
@@ -176,11 +201,7 @@ EOF" > $DEPLOY_SERVICE_SCRIPT
 
 echo "
 # Service variables" >> $DEPLOY_SERVICE_SCRIPT
-parse_env_file ./config/service_vars.env "$VARS_CONTEXT" "$DEPLOY_SERVICE_SCRIPT"
-
-echo "
-# Service secrets" >> $DEPLOY_SERVICE_SCRIPT
-parse_env_file ./config/service_secrets.env "$SECRETS_CONTEXT" "$DEPLOY_SERVICE_SCRIPT"
+parse_env_file "$SERVICE_VARIABLES_FILE" "$SERVICE_VARIABLES_OVERRIDES" "$DEPLOY_SERVICE_SCRIPT"
 
 echo " - Writing contents to \"$DEPLOY_SERVICE_SCRIPT\""
 echo "
