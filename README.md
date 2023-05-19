@@ -1,16 +1,17 @@
-<h1 align="center">
-    <b>Open Operator</b>
-</h1>
+<div id="title"  align="center" >
+  <ul>
+    <summary><h1 style="display: inline-block;">Open Operator</h1></summary>
+  </ul>
+</div>
 
 <h2 align="center">
     <b>Autonomous Keeper Service</b>
-</h2>
-
 <p align="center">
   <a href="https://github.com/valory-xyz/open-autonomy/blob/main/LICENSE">
     <img alt="License" src="https://img.shields.io/pypi/l/open-autonomy">
   </a>
-</p>
+</p> 
+</h2>
 
 This repository contains tooling to deploy an agent instance for the Autonomous Keeper Service (AKS) on Amazon Web Services (AWS) using Terraform. After the deployment process finishes, the agent will be running in a [`screen`](https://www.gnu.org/software/screen/) session within an [AWS EC2](https://aws.amazon.com/ec2/) instance.
 
