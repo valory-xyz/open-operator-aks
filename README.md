@@ -1,3 +1,7 @@
+<p align="center">
+![Open Operator](./docs/images/open-operator-logo.svg)
+</p>
+
 <div id="title"  align="center" >
   <ul>
     <summary><h1 style="display: inline-block;">Open Operator</h1></summary>
