@@ -1,8 +1,25 @@
-# Open Operator - Autonomous Keeper Service
+<h1 align="center">
+    <b>Open Operator</b>
+</h1>
 
-This repository contains tooling to deploy an agent instance for the Autonomous Keeper Service (AKS) on Amazon Web Services (AWS) using Terraform. After the deployment process finishes, the agent will be running in a screen session within an [AWS EC2](https://aws.amazon.com/ec2/) instance.
+<h2 align="center">
+    <b>Autonomous Keeper Service</b>
+</h2>
 
-You can deploy the agent instance either using the Github interface (through Github actions) or cloning the repository locally on your machine.
+<p align="center">
+  <a href="https://github.com/valory-xyz/open-autonomy/blob/main/LICENSE">
+    <img alt="License" src="https://img.shields.io/pypi/l/open-autonomy">
+  </a>
+</p>
+
+This repository contains tooling to deploy an agent instance for the Autonomous Keeper Service (AKS) on Amazon Web Services (AWS) using Terraform. After the deployment process finishes, the agent will be running in a [`screen`](https://www.gnu.org/software/screen/) session within an [AWS EC2](https://aws.amazon.com/ec2/) instance.
+
+You can deploy the agent instance either using using Github actions or cloning the repository locally on your machine and executing the steps manually.
+
+- [Prerequisites](#prerequisites)
+- [Deploy the service using Github actions](#deploy-the-service-using-github-actions)
+- [Deploy the service manually](#deploy-the-service-manually)
+- [Tearing down the infrastructure](#tearing-down-the-infrastructure)
 
 ## Prerequisites
 
@@ -32,8 +49,8 @@ You can deploy the agent instance either using the Github interface (through Git
       ```json
       [
          {
-            address: 0x1c883D4D6a429ef5ea12Fa70a1d67D6f6013b279,
-            private_key: 0x0000000000000000000000000000000000000000000000000000000000000000
+            "address": "0x1c883D4D6a429ef5ea12Fa70a1d67D6f6013b279",
+            "private_key": "0x0000000000000000000000000000000000000000000000000000000000000000"
          }
       ]   
       ```
