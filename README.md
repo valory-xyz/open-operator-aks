@@ -1,5 +1,5 @@
 <p align="center">
-![Open Operator](./docs/images/open-operator-logo.svg)
+   <img src="./docs/images/open-operator-logo.svg">
 </p>
 
 <div id="title"  align="center" >
