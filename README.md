@@ -139,7 +139,7 @@ The repository is prepared to deploy the service using GitHub actions. This is t
    <td>Variable</td>
    <td>Public ID of the service. Example:
 
-   `valory/keep3r_bot:0.1.0`
+   `valory/keep3r_bot_goerli:0.1.0`
 
    </td>
    </tr>
