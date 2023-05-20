@@ -8,8 +8,8 @@
     <br><a href="https://github.com/valory-xyz/open-operator-aks/blob/main/LICENSE">
     <img alt="License" src="https://img.shields.io/github/license/valory-xyz/open-operator-aks">
     </a>
-    <a href="https://github.com/valory-xyz/open-operator-aks/releases/latest">
-    <img alt="Latest release" src="https://img.shields.io/github/v/release/valory-xyz/open-operator-aks">
+    <!-- <a href="https://github.com/valory-xyz/open-operator-aks/releases/latest">
+    <img alt="Latest release" src="https://img.shields.io/github/v/release/valory-xyz/open-operator-aks"> -->
     </a>
 </h1>
 
