@@ -13,15 +13,15 @@
     </a>
 </h1>
 
-This repository contains tooling to deploy an agent instance for the Autonomous Keeper Service (AKS) on Amazon Web Services (AWS) using Terraform. After the deployment process finishes, the agent will be running in a [`screen`](https://www.gnu.org/software/screen/) session within an [AWS EC2](https://aws.amazon.com/ec2/) instance.
+This repository contains tooling to deploy autonomous service agent(s) on Amazon Web Services (AWS) using Terraform. After the deployment process finishes, the agent will be running in a [`screen`](https://www.gnu.org/software/screen/) session within an [AWS EC2](https://aws.amazon.com/ec2/) instance.
 
-You can deploy the agent instance either using using GitHub actions or cloning the repository locally on your machine and executing the steps manually.
+You can deploy the agent instance either [using GitHub actions](#deploy-the-service-using-github-actions) or cloning the repository locally on your machine and [executing the commands manually]((#deploy-the-service-using-the-cli)).
 
-#### Table of contents
-
-- [Prerequisites](#prerequisites)
-- [Deploy the service using GitHub actions](#deploy-the-service-using-github-actions)
-- [Deploy the service using the CLI](#deploy-the-service-using-the-cli)
+> :arrow_forward: This repository contains the configuration parameters for the Autonomous Keeper Service (AKS) in the `./config` folder. You will need the following information:
+> - AKS GitHub Repository: https://github.com/valory-xyz/agent-academy-2
+> - AKS public ID: `valory/keep3r_bot_goerli:0.1.0` or `valory/keep3r_bot:0.1.0`
+>
+> You will also need to provide some confidential parameters (e.g., RPC endpoints). See the file `./config/service_vars.env` and the instructions below.
 
 ## Prerequisites
 
