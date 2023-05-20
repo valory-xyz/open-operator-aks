@@ -1,8 +1,8 @@
 name: Deploy service
 
 on:
-  release:
-    types: [published]
+  workflow_dispatch:
+
 
 jobs:
   deploy-infra:

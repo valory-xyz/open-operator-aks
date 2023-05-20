@@ -1,0 +1,47 @@
+name: Destroy infrastructure
+
+on:
+  workflow_dispatch:
+
+
+jobs:
+  deploy-infra:
+    environment: production
+    runs-on: ubuntu-latest
+    name: Destroy infrastructure from AWS
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Set up AWS CLI
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-east-2
+
+      - name: Derive SSH public key from private key for the AWS EC2 instance
+        run: |
+          OPERATOR_SSH_PUBLIC_KEY=$(ssh-keygen -y -f <(echo "${{ secrets.OPERATOR_SSH_PRIVATE_KEY }}"))
+          echo "TF_VAR_operator_ssh_pub_key=$OPERATOR_SSH_PUBLIC_KEY" >> "$GITHUB_ENV"
+
+      - name: Set up Terraform Version
+        uses: hashicorp/setup-terraform@v2
+        with:
+          terraform_version: 1.4.6
+          terraform_wrapper: false
+
+      - name: Terraform Init
+        run: |
+          cd cloud_resources/aws/docker-compose
+          terraform init -backend-config="bucket=${{ vars.TFSTATE_S3_BUCKET }}" -no-color
+
+      - name: Terraform Plan
+        run: |
+          cd cloud_resources/aws/docker-compose
+          terraform plan -no-color
+
+      - name: Terraform Destroy
+        run: |
+          cd cloud_resources/aws/docker-compose
+          terraform destroy -auto-approve -no-color
