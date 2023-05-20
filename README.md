@@ -183,7 +183,7 @@ The repository is prepared to deploy the service using GitHub actions. This is t
    [
       {
          "address": "0x1c883D4D6a429ef5ea12Fa70a1d67D6f6013b279",
-         "private_key": "0x0000000000000000000000000000000000000000000000000000000000000000"
+         "private_key": "0x0123456789abcdef0123456789abcdef...0"
       }
    ]   
    ```
