@@ -1,5 +1,5 @@
 <p align="center">
-   <img src="./docs/images/open-operator-logo.svg">
+   <img src="./docs/images/open-operator-logo.svg" width=300>
 </p>
 
 <h1 align="center" style="margin-bottom: 0;">
