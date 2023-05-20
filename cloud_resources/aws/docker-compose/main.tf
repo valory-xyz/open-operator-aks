@@ -71,7 +71,7 @@ resource "aws_instance" "ubuntu-host" {
   tags = {
     Name = "Autonomy-Operator"
     }
-  user_data = file("${path.module}/../../../scripts/install.sh")
+  user_data = file("${path.module}/../../../scripts/provision_instance.sh")
 }
 
 
