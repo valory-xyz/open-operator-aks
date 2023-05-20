@@ -150,12 +150,13 @@ fi
 
 # ------------------------------------------------------------------------------
 echo " - Retrieving service hash"
-SERVICE_HASH=$(echo "$PACKAGES_JSON" | jq -r ".dev.\"service/$SERVICE_ID\"")
+SERVICE_JSON_KEY="service/${SERVICE_ID/:/\/}"
+SERVICE_HASH=$(echo "$PACKAGES_JSON" | jq -r ".dev.\"$SERVICE_JSON_KEY\"")
 echo "   - Service hash: $SERVICE_HASH"
 
 if [[ ! $SERVICE_HASH =~ ^ba[a-zA-Z0-9]{57}$ ]]; then
   echo "Error: Service hash does not match the expected pattern. Exiting script."
-  echo "Verify that the key \"service/$SERVICE_ID\" exists in \"packges/packages.json\" in the repository \"$SERVICE_REPO_URL\" ($SERVICE_REPO_TAG)."
+  echo "Verify that the key \"$SERVICE_JSON_KEY\" exists in \"packges/packages.json\" in the repository \"$SERVICE_REPO_URL\" ($SERVICE_REPO_TAG)."
   exit 1
 fi
 
