@@ -19,7 +19,7 @@ This repository contains tooling to deploy autonomous service agent(s) on Amazon
 You can deploy the agent instance either [using GitHub actions](#deploy-the-service-using-github-actions) or cloning the repository locally on your machine and [executing the commands manually]((#deploy-the-service-using-the-cli)).
 
 > **Note** <br />
-> **This repository contains the configuration parameters for the Autonomous Keeper Service (AKS) in the `./config/service_vars.env` file. To deploy this particular service, you will need to set the variables below as follows:**
+> **This repository contains default configuration parameters for the Autonomous Keeper Service (AKS) in the `./config/service_vars.env` file. To deploy this particular service, you will also need to set the variables below as follows:**
 > - **`SERVICE_REPO_URL`: https://github.com/valory-xyz/agent-academy-2**
 > - **`SERVICE_ID`: `valory/keep3r_bot_goerli:0.1.0` or `valory/keep3r_bot:0.1.0`**
 > - **(Optional) `SERVICE_REPO_TAG`: `v0.2.1`**
