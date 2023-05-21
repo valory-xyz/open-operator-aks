@@ -5,9 +5,10 @@
 <h1 align="center" style="margin-bottom: 0;">
     Open Operator
     <br><sub>Autonomous Keeper Service</sub>
-    <br><a href="https://github.com/valory-xyz/open-operator-aks/blob/main/LICENSE">
-    <img alt="License" src="https://img.shields.io/github/license/valory-xyz/open-operator-aks">
-    </a>
+    <br><a href="https://github.com/valory-xyz/open-operator-aks/blob/main/LICENSE"><img alt="License: Apache-2.0" src="https://img.shields.io/github/license/valory-xyz/open-operator-aks"></a>
+    <a href="https://aws.amazon.com/"><img alt="Cloud: AWS" src="https://img.shields.io/badge/cloud-AWS-orange"></a>
+    <a href="https://docs.docker.com/compose/"><img alt="Deployment: Docker Compose" src="https://img.shields.io/badge/deployment-Docker%20Compose-blue"></a>
+    <a href="https://pypi.org/project/open-autonomy/0.10.4/"><img alt="Framework: Open Autonomy 0.10.4" src="https://img.shields.io/badge/framework-Open%20Autonomy%200.10.4-blueviolet"></a>    
     <!-- <a href="https://github.com/valory-xyz/open-operator-aks/releases/latest">
     <img alt="Latest release" src="https://img.shields.io/github/v/release/valory-xyz/open-operator-aks"> -->
     </a>
@@ -17,11 +18,13 @@ This repository contains tooling to deploy autonomous service agent(s) on Amazon
 
 You can deploy the agent instance either [using GitHub actions](#deploy-the-service-using-github-actions) or cloning the repository locally on your machine and [executing the commands manually]((#deploy-the-service-using-the-cli)).
 
-> :arrow_forward: This repository contains the configuration parameters for the Autonomous Keeper Service (AKS) in the `./config` folder. You will need the following information:
-> - AKS GitHub Repository: https://github.com/valory-xyz/agent-academy-2
-> - AKS public ID: `valory/keep3r_bot_goerli:0.1.0` or `valory/keep3r_bot:0.1.0`
+> **Note** <br />
+> **This repository contains the configuration parameters for the Autonomous Keeper Service (AKS) in the `./config/service_vars.env` file. To deploy this particular service, you will need to set the variables below as follows:**
+> - **`SERVICE_REPO_URL`: https://github.com/valory-xyz/agent-academy-2**
+> - **`SERVICE_ID`: `valory/keep3r_bot_goerli:0.1.0` or `valory/keep3r_bot:0.1.0`**
+> - **(Optional) `SERVICE_REPO_TAG`: `v0.2.1`**
 >
-> You will also need to provide some confidential parameters (e.g., RPC endpoints). See the file `./config/service_vars.env` and the instructions below.
+> **See the complete instructions below.**
 
 ## Prerequisites
 
@@ -188,7 +191,8 @@ The repository is prepared to deploy the service using GitHub actions. This is t
    ]   
    ```
 
-   **:warning: If you don't want to expose the `keys.json` file in the repository, you can [define the GitHub secret](https://docs.github.com/en/actions/security-guides/encrypted-secrets#creating-encrypted-secrets-for-a-repository) `KEYS_JSON` with the contents of the file.**
+   > **Warning** <br />
+   > **If you don't want to expose the `keys.json` file in the repository, you can [define the GitHub secret](https://docs.github.com/en/actions/security-guides/encrypted-secrets#creating-encrypted-secrets-for-a-repository) `KEYS_JSON` with the contents of the file.**
    </td>
    </tr>
    <tr>
@@ -208,7 +212,8 @@ The repository is prepared to deploy the service using GitHub actions. This is t
    SERVICE_SECRET2=secret_value2
    ```
 
-   **:warning: If you don't want to expose a secret/confidential variable in the repository, you can assign them a blank value (or a placeholder value),[^1] and override it by [defining a GitHub secret](https://docs.github.com/en/actions/security-guides/encrypted-secrets#creating-encrypted-secrets-for-a-repository) with the same variable name.**
+   > **Warning** <br />
+   > **If you don't want to expose secret/confidential variables in the repository, you can assign them a blank value (or a placeholder value)[^1] in the file `service_vars.env`, and override their values by [defining GitHub secrets](https://docs.github.com/en/actions/security-guides/encrypted-secrets#creating-encrypted-secrets-for-a-repository) matching the corresponding variables' names.**
 
    [^1]: The deployment process will override any service-specific variable defined in the `./config/service_vars.env` with any **secret** or **variable** defined in the GitHub repository that matches the variable name. It is important to note that a variable (overridden or not) will be exported to the AWS EC2 instance running the service agent **only** if it is declared in the `./config/service_vars.env` file.
 
@@ -217,11 +222,11 @@ The repository is prepared to deploy the service using GitHub actions. This is t
    </tbody>
    </table>
 
-4. **Deploy infrastructure and service to AWS.** Run the "Deploy service" workflow using the GitHub interface:
+4. **Deploy the infrastructure and the service to AWS.** Run the "Deploy service" workflow using the GitHub interface. This workflow will create the necessary resources on AWS. Once the workflow has finished, the generated AWS EC2 instance will take over with the process of deploying the agent for the service.
 
    <p align="center"><img src="docs/images/deploy-service-workflow.png" alt="Deploy service workflow" width=80%></p>
 
-   This workflow will create the necessary resources on AWS. Once the workflow has finished, the generated AWS EC2 instance will take over with the process of deploying the agent for the service.
+
    You should see the following output in the *Summary* step of the workflow:
 
    ```
@@ -254,11 +259,9 @@ The repository is prepared to deploy the service using GitHub actions. This is t
    docker logs node0 --follow  # For the Tendermint node
    ```
 
-6. **Destroy the infrastructure.**  Run the "Destroy infrastructure" workflow using the GitHub interface:
+6. **Destroy the infrastructure.**  Run the "Destroy infrastructure" workflow using the GitHub interface. This will destroy the resources created on AWS. Alternatively, you can also remove the resources using the AWS Management Console.
 
    <p align="center"><img src="docs/images/destroy-infrastructure-workflow.png" alt="Deploy service workflow" width=80%></p>
-
-   This will destroy the resources created on AWS. Alternatively, you can also remove the resources using the AWS Management Console.
 
 ## Deploy the service using the CLI
 
@@ -284,12 +287,13 @@ Follow these steps:
 
    ```bash
    export TF_VAR_operator_ssh_pub_key=$(cat path/to/your/ssh_public_key)
+
    export TFSTATE_S3_BUCKET=<tfstate_s3_bucket>
    export SERVICE_REPO_URL=https://github.com/<owner>/<repo>
    export SERVICE_ID=<author>/<service_name>:<version>
 
    # Optional variables
-   export SERVICE_REPO_TAG=<tag>
+   export SERVICE_REPO_TAG=<version_tag>
    export GH_TOKEN=ghp_000000000000000000000000000000000000
    ```
 
@@ -298,7 +302,7 @@ Follow these steps:
    - `./config/keys.json`
    - `./config/service_vars.env`
 
-4. **Deploy infrastructure and service to AWS.**
+4. **Deploy the infrastructure and the service to AWS.**
    1. Deploy the infrastructure:
       ```bash
       cd cloud_resources/aws/docker-compose/
