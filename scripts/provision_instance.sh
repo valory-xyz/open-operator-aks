@@ -27,12 +27,12 @@ PORT="26656"
 TENDERMINT_P2P_URL=$(curl icanhazip.com):$PORT
 
 
-function bad_os_type() {
+bad_os_type() {
 	echo "OS $OSTYPE is not supported!"
 	exit 1
 }
 
-function check_linux() {
+check_linux() {
 	# check any deb distribution!
 	is_ubuntu=`cat /etc/issue|grep -i Ubuntu`
 	if  [[ -z $is_ubuntu ]];
@@ -44,11 +44,11 @@ function check_linux() {
 }
 
 
-function is_python3(){
+is_python3(){
 	return `which python3`
 }
 
-function is_python_version_ok() {
+is_python_version_ok() {
 	if which python3 2>&1 >/dev/null;
 	then
 		version=`python3 -V 2>/dev/null`
@@ -65,35 +65,47 @@ function is_python_version_ok() {
 }
 
 
-function install_autonomy (){
-	echo "Installing Autonomy $OPEN_AUTONOMY_VERSION for $USER"
-	output=$(sudo -u $USER pip3 install --user open-autonomy[all]==$OPEN_AUTONOMY_VERSION --force --no-cache-dir)
-	if [[  $? -ne 0 ]];
-	then
-		echo "$output"
-		echo 'Failed to install autonomy'
-		exit 1
-	fi
+install_autonomy (){
 	touch ~/.profile
 	py_user_base=$(sudo -u $USER python3 -m site --user-base)
 	echo  >>~/.bashrc
 	echo 'export PATH=$PATH'":${py_user_base}/bin" >>/home/$USER/.bashrc 
     echo "Installed autonomy for $USER"
 	source /home/$USER/.bashrc  # sometimes ~/.local/bin is not in PATH
-	output=$(sudo -u $USER aea --help 2>&1)
+    export PATH=$PATH":${py_user_base}/bin"
+
+	echo "Installing Open Autonomy $OPEN_AUTONOMY_VERSION for user $USER"
+	output=$(sudo -u $USER pip3 install --user open-autonomy[all]==$OPEN_AUTONOMY_VERSION --force --no-cache-dir)
 	if [[  $? -ne 0 ]];
 	then
 		echo "$output"
-		echo 'Test run of aea failed!'
+		echo 'Failed to install Open Autonomy'
 		exit 1
 	fi
-	echo "Autonomy successfully installed!"
+
+	output=$(su - $USER -c "aea --help" 2>&1)
+	if [[  $? -ne 0 ]];
+	then
+		echo "$output"
+		echo 'Test run of Open AEA failed!'
+		exit 1
+	fi
+
+	output=$(su - $USER -c "autonomy --help" 2>&1)
+	if [[  $? -ne 0 ]];
+	then
+		echo "$output"
+		echo 'Test run of Open Autonomy failed!'
+		exit 1
+	fi
+
+	echo "Open Autonomy successfully installed!"
 	echo "It's recommended to open a new shell to work with Autonomy."
 }
 
-function install_ubuntu_deps(){
+install_ubuntu_deps(){
 	# always install it cause python3-dev can be missing! also it's not consuming much time.
-	echo "Install python3 and dependencies"
+	echo "Installing python3 and dependencies"
 	output=$(sudo bash -c "apt update &&  apt install python3 python3-pip python3-dev -y" 2>&1)
 	if [[  $? -ne 0 ]];
 	then
@@ -104,8 +116,8 @@ function install_ubuntu_deps(){
 
 }
 
-function install_docker(){
-	echo "Install Docker"
+install_docker(){
+	echo "Installing Docker"
 	output=$(curl -fsSL https://get.docker.com -o get-docker.sh && sudo sh get-docker.sh && sudo gpasswd -a $USER docker && newgrp docker 2>&1)
 	if [[  $? -ne 0 ]];
 	then
@@ -115,7 +127,7 @@ function install_docker(){
 	fi
 }
 
-function check_python_version(){
+check_python_version(){
 	output=$(is_python_version_ok)
 	if [[ $? -eq 1 ]];
 	then
@@ -126,13 +138,13 @@ function check_python_version(){
 }
 
 
-function setup_host(){
+setup_host(){
 	echo export TENDERMINT_P2P_URL=$TENDERMINT_P2P_URL >>/home/$USER/.bashrc
 	echo "Setup host vars."
 }
 
 
-function install_on_ubuntu(){
+install_on_ubuntu(){
 	setup_host
 	install_ubuntu_deps
 	check_python_version
@@ -140,7 +152,7 @@ function install_on_ubuntu(){
 	install_autonomy
 }
 
-function ensure_brew(){
+ensure_brew(){
 	output=`which brew`
 	if [[ $? -ne 0 ]];
 	then
@@ -155,7 +167,7 @@ function ensure_brew(){
 	fi
 }
 
-function mac_install_python(){
+mac_install_python(){
 	output=`is_python_version_ok`
 	if [[ $? -eq 0 ]];
 	then
@@ -177,14 +189,14 @@ function mac_install_python(){
 	fi
 }
 
-function install_on_mac(){
+install_on_mac(){
 	mac_install_python
 	check_python_version
 	install_autonomy
 }
 
-function main(){
-	echo "Welcome to Autonomy installer!"
+main(){
+	echo "Welcome to Open Operator installer!"
 	case "$OSTYPE" in
 	  darwin*)  install_on_mac ;;
 	  linux*)   check_linux ;;
