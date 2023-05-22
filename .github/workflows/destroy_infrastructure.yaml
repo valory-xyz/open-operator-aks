@@ -11,7 +11,7 @@ jobs:
     name: Destroy infrastructure from AWS
     steps:
       - name: Checkout code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       - name: Set up AWS CLI
         uses: aws-actions/configure-aws-credentials@v2

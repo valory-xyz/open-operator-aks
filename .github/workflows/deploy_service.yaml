@@ -11,7 +11,7 @@ jobs:
     name: Deploy infrastructure and service to AWS
     steps:
       - name: Checkout code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       - name: Generate the service deployment script
         env:
