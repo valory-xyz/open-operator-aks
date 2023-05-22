@@ -55,6 +55,9 @@ The repository is prepared to deploy the service using GitHub actions. This is t
 1. **Clone this repository.**
 2. **Define the following [secrets](https://docs.github.com/en/actions/security-guides/encrypted-secrets#creating-encrypted-secrets-for-a-repository) and [variables](https://docs.github.com/en/actions/learn-github-actions/variables#creating-configuration-variables-for-a-repository) in the cloned repository:**
 
+   > **Warning** <br />
+   > **Please make sure to avoid any leading or trailing white spaces or newlines when defining variables and secrets.**
+
    <table>
    <thead>
    <tr>
