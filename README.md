@@ -22,7 +22,7 @@ You can deploy the agent instance either [using GitHub actions](#deploy-the-serv
 > **This repository contains default configuration parameters for the Autonomous Keeper Service (AKS) in the `./config/service_vars.env` file. To deploy this particular service, you will also need to set these variables:**
 > - **`SERVICE_REPO_URL`: https://github.com/valory-xyz/agent-academy-2**
 > - **`SERVICE_ID`: `valory/keep3r_bot_goerli:0.1.0` or `valory/keep3r_bot:0.1.0`**
-> - **(Optional) `SERVICE_REPO_TAG`: `v0.2.1`**
+> - **(Optional) `SERVICE_REPO_TAG`: `v0.3.0`**
 >
 > **See the complete instructions below.**
 
@@ -160,7 +160,7 @@ The repository is prepared to deploy the service using GitHub actions. This is t
    <td>Variable</td>
    <td>Release tag corresponding to the version of the service you want to deploy. If not defined, the script will deploy the latest release. Example:
 
-   `v.0.2.1`
+   `v.0.3.0`
 
    </td>
    </tr>
