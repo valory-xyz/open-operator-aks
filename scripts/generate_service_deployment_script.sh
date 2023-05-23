@@ -229,6 +229,9 @@ fi
 echo "   - Joining context variables into a single JSON"
 SERVICE_VARIABLES_OVERRIDES=$(echo "$VARS_CONTEXT $SECRETS_CONTEXT" | jq -s add)
 
+echo "   - Removing known secrets"
+SERVICE_VARIABLES_OVERRIDES=$(echo "$SERVICE_VARIABLES_OVERRIDES" | jq 'del(.AWS_ACCESS_KEY_ID, .AWS_SECRET_ACCESS_KEY, .GH_TOKEN, .OPERATOR_SSH_PRIVATE_KEY, .TFSTATE_S3_BUCKET)')
+
 echo "   - Setting the contents of \"KEYS_JSON\""
 KEYS_JSON=""
 if [[ $(echo "$SERVICE_VARIABLES_OVERRIDES" | jq '.KEYS_JSON') != "null" ]]; then
