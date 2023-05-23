@@ -42,20 +42,21 @@
 parse_env_file() {
     # Overrides an .env file containing variables.
     #
-    # For each variable VAR in the .env file, it outputs to $3
+    # For each variable VAR in the .env file, it outputs to environment
+    # variable "SERVICE_VARIABLES_PARSED"
     # "export VAR=val", where "val" is either the value found in the
     # .env file, or overrien if found on the JSON object passed as
     # second argument.
 
     ENV_FILE="$1"
     JSON="$2"
-    #DEPLOY_SERVICE_SCRIPT="$3"
 
     echo "   - Parsing .env file \"$ENV_FILE\""
 
     # Sanitize inputs
     if [[ ! -f "$ENV_FILE" ]]; then
-        echo "   - .env file '$ENV_FILE' does not exist. Ignoring."
+        echo "   - .env file \"$ENV_FILE\" not found: deployment might be invalid."
+        SERVICE_VARIABLES_PARSED=$'\n'"# Service variables"$'\n'"# - WARNING: File \"$ENV_FILE\" not found when generating deployment script."$'\n'"#   Deployment might be invalid."$'\n'
         return
     fi
 
@@ -65,7 +66,7 @@ parse_env_file() {
 
     # Read variables
     VARS="$(grep -vE "^(#.*|\s*)$" $ENV_FILE | awk -F '=' '{ print "export", $0 }')"
-    
+
     # Parse the JSON object and loop through its keys
     for VAR_NAME in $(echo "$JSON" | jq -r 'keys[]'); do
         VAR_VALUE=$(echo "$JSON" | jq -r ".$VAR_NAME")
@@ -77,7 +78,9 @@ parse_env_file() {
         fi
     done
 
-    echo "$VARS" >> $3
+    SERVICE_VARIABLES_PARSED=$'\n'"# Service variables"$'\n'"$VARS"$'\n'
+
+    return
 }
 
 
@@ -95,6 +98,17 @@ echo " - SERVICE_REPO_TAG=$SERVICE_REPO_TAG"
 echo " - SERVICE_ID=$SERVICE_ID"
 echo " - GH_TOKEN=$GH_TOKEN"
 echo 
+
+if [ -z "${SERVICE_REPO_URL// }" ]; then
+  echo "Error: Undefined \"SERVICE_REPO_URL\"."
+  exit 1
+fi
+
+if [ -z "${SERVICE_REPO_TAG// }" ]; then
+  echo "Error: Undefined \"SERVICE_REPO_TAG\"."
+  exit 1
+fi
+
 echo "Steps:"
 
 # ------------------------------------------------------------------------------
@@ -161,7 +175,7 @@ if [[ ! $SERVICE_HASH =~ ^ba[a-zA-Z0-9]{57}$ ]]; then
 fi
 
 # ------------------------------------------------------------------------------
-echo " - Writing contents to \"$DEPLOY_SERVICE_SCRIPT\""
+echo " - Writing service deployment script"
 
 if [[ -z "${VARS_CONTEXT// }" ]]; then
     echo "   - Empty VARS_CONTEXT"
@@ -189,7 +203,13 @@ else
   exit 1
 fi
 
-echo "echo \"Current user: \$(whoami)\"
+#SERVICE_VARIABLES_PARSED is "returned" in parse_env_file() function
+parse_env_file "$SERVICE_VARIABLES_FILE" "$SERVICE_VARIABLES_OVERRIDES"
+
+echo "   - Writing file \"$DEPLOY_SERVICE_SCRIPT\""
+echo "# Deployment script for service \"$SERVICE_ID\" ($SERVICE_REPO_TAG)
+
+echo \"Current user: \$(whoami)\"
 export PATH=\"\$PATH:/home/ubuntu/.local/bin\"
 echo "Environment variables:"
 env
@@ -200,19 +220,13 @@ cd \$(ls -td -- */ | head -n 1)
 autonomy build-image
 cat > keys.json << EOF
 $KEYS_JSON
-EOF" > $DEPLOY_SERVICE_SCRIPT
-
-echo "
-# Service variables" >> $DEPLOY_SERVICE_SCRIPT
-parse_env_file "$SERVICE_VARIABLES_FILE" "$SERVICE_VARIABLES_OVERRIDES" "$DEPLOY_SERVICE_SCRIPT"
-
-echo " - Writing contents to \"$DEPLOY_SERVICE_SCRIPT\""
-echo "
+EOF
+$SERVICE_VARIABLES_PARSED
 autonomy deploy build
 cd abci_build && screen -dmS service_screen_session bash -c \"autonomy deploy run\"
-echo \"Service deployment finished. Use 'screen -r service_screen_session' to attach to the session running the agent.\"" >> $DEPLOY_SERVICE_SCRIPT
+echo \"Service deployment finished. Use 'screen -r service_screen_session' to attach to the session running the agent.\"" > $DEPLOY_SERVICE_SCRIPT
 
-echo " - Changing \"$DEPLOY_SERVICE_SCRIPT\" permissions"
+echo " - Changing permissions to file \"$DEPLOY_SERVICE_SCRIPT\""
 chmod 764 $DEPLOY_SERVICE_SCRIPT
 
 echo 
