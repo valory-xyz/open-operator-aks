@@ -19,7 +19,7 @@ jobs:
           SERVICE_REPO_TAG: ${{ vars.SERVICE_REPO_TAG }}
           SERVICE_ID: ${{ vars.SERVICE_ID }}
           GH_TOKEN: ${{ secrets.GH_TOKEN }}          
-          VARS_CONTEXT: ${{ toJson(secrets) }}
+          VARS_CONTEXT: ${{ toJson(vars) }}
           SECRETS_CONTEXT: ${{ toJson(secrets) }}      
         run: |
           ./scripts/generate_service_deployment_script.sh
