@@ -1,5 +1,6 @@
 variable "deployment_region"{
     description = "Region to deploy."
+    type = string
     default = "us-east-2"
 }
 
