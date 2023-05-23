@@ -55,7 +55,7 @@ parse_env_file() {
 
     # Sanitize inputs
     if [[ ! -f "$ENV_FILE" ]]; then
-        echo "   - .env file \"$ENV_FILE\" not found: deployment might be invalid."
+        echo "     - Warning: .env file \"$ENV_FILE\" not found: deployment might be invalid."
         SERVICE_VARIABLES_PARSED=$'\n'"# Service variables"$'\n'"# - WARNING: File \"$ENV_FILE\" not found when generating deployment script."$'\n'"#   Deployment might be invalid."$'\n'
         return
     fi
@@ -84,6 +84,45 @@ parse_env_file() {
 }
 
 
+validate_keys_json() {
+    # Validates the first argument $1 to match expected Ethereum key and address JSON format
+
+    echo "   - Validating KEYS_JSON"
+
+    KEYS_JSON_T="$1"
+
+    # Validate KEYS_JSON format
+    if ! echo "$KEYS_JSON_T" | jq -e '. | type == "array" and length > 0 and all(.[]; type == "object" and (.address | type == "string") and (.private_key | type == "string"))' > /dev/null; then
+      echo "     - Invalid KEYS_JSON format"
+      exit 1
+    fi
+
+    # Validate each object in KEYS_JSON
+    errors=0
+    for object in $(echo "$KEYS_JSON_T" | jq -c '.[]'); do
+      # Validate Ethereum address format
+      address=$(echo "$object" | jq -r '.address')
+      if ! [[ $address =~ ^0x[0-9a-fA-F]{40}$ ]]; then
+        echo "     - Invalid Ethereum address format: $address"
+        errors=$((errors + 1))
+      fi
+
+      # Validate Ethereum private key format
+      private_key=$(echo "$object" | jq -r '.private_key')
+      if ! [[ $private_key =~ ^0x[0-9a-fA-F]{64}$ ]]; then
+        echo "     - Invalid Ethereum private key format for address $address"
+        errors=$((errors + 1))
+      fi
+    done
+
+    if [ $errors -gt 0 ]; then
+      echo "     - Invalid KEYS_JSON format"
+      exit 1
+    fi
+
+    echo "     - KEYS_JSON format is valid"
+}
+
 
 # ==================
 # Script starts here
@@ -104,8 +143,8 @@ if [ -z "${SERVICE_REPO_URL// }" ]; then
   exit 1
 fi
 
-if [ -z "${SERVICE_REPO_TAG// }" ]; then
-  echo "Error: Undefined \"SERVICE_REPO_TAG\"."
+if [ -z "${SERVICE_ID// }" ]; then
+  echo "Error: Undefined \"SERVICE_ID\"."
   exit 1
 fi
 
@@ -139,7 +178,7 @@ fi
 echo " - Retrieving repository tag"
 
 if [ -z "${SERVICE_REPO_TAG// }" ]; then
-  echo "   - Repository tag undefined. Retrieving latest release tag."
+  echo "   - Undefined \"SERVICE_REPO_TAG\". Retrieving latest release tag."
   SERVICE_REPO_TAG=$(curl -sL "${HEADERS[@]}" "$API_URL/releases/latest" | jq -r ".tag_name")
 fi
 
@@ -190,18 +229,20 @@ fi
 echo "   - Joining context variables into a single JSON"
 SERVICE_VARIABLES_OVERRIDES=$(echo "$VARS_CONTEXT $SECRETS_CONTEXT" | jq -s add)
 
-echo "   - Setting the contents of keys file (\"keys.json\")"
+echo "   - Setting the contents of \"KEYS_JSON\""
 KEYS_JSON=""
 if [[ $(echo "$SERVICE_VARIABLES_OVERRIDES" | jq '.KEYS_JSON') != "null" ]]; then
-  echo "     - Set \"keys.json\" to context variable KEYS_JSON"
+  echo "     - Set \"KEYS_JSON\" from context variable"
   KEYS_JSON=$(echo "$SERVICE_VARIABLES_OVERRIDES" | jq -r '.KEYS_JSON')
 elif [ -f $SERVICE_KEYS_JSON_FILE ]; then
-  echo "     - Set \"keys.json\" to file contents \"$SERVICE_KEYS_JSON_FILE\""
+  echo "     - Set \"KEYS_JSON\" to file contents \"$SERVICE_KEYS_JSON_FILE\""
   KEYS_JSON=$(<$SERVICE_KEYS_JSON_FILE)
 else
-  echo "Error: \"keys.json\" not defined in context variable KEYS_JSON nor in file \"$SERVICE_KEYS_JSON_FILE\"."
+  echo "Error: \"KEYS_JSON\" not defined in context variable nor in file \"$SERVICE_KEYS_JSON_FILE\"."
   exit 1
 fi
+
+validate_keys_json "$KEYS_JSON"
 
 #SERVICE_VARIABLES_PARSED is "returned" in parse_env_file() function
 parse_env_file "$SERVICE_VARIABLES_FILE" "$SERVICE_VARIABLES_OVERRIDES"
@@ -214,7 +255,7 @@ export PATH=\"\$PATH:/home/ubuntu/.local/bin\"
 echo "Environment variables:"
 env
 pip install requests==2.28.1
-autonomy init --remote --author open_operator_aks --reset
+autonomy init --remote --author open_operator --reset
 autonomy fetch $SERVICE_HASH --service
 cd \$(ls -td -- */ | head -n 1)
 autonomy build-image
