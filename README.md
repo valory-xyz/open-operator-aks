@@ -14,7 +14,9 @@
     </a>
 </h1>
 
-This repository contains tooling to deploy autonomous service agent(s) on Amazon Web Services (AWS) using Terraform. After the deployment process finishes, the agent will be running in a [`screen`](https://www.gnu.org/software/screen/) session within an [AWS EC2](https://aws.amazon.com/ec2/) instance.
+This repository contains tooling to deploy autonomous service agent(s) on Amazon Web Services (AWS) using Terraform. After the deployment process finishes, the agent will be running in a [`screen`](https://www.gnu.org/software/screen/) session within an [AWS EC2](https://aws.amazon.com/ec2/) instance in the default AWS Region `us-east-2`.[^1]
+
+[^1]: If you wish to deploy on another AWS Region, you need to modify the Terraform scripts under `./cloud_resources/aws/docker_compose`. Note that you also need to provide a valid Amazon Machine Image (AMI) ID for that region, otherwise the deployment process will fail on `terraform apply`.
 
 You can deploy the agent instance either [using GitHub actions](#deploy-the-service-using-github-actions) or cloning the repository locally on your machine and [executing the commands manually]((#deploy-the-service-using-the-cli)).
 
@@ -31,9 +33,9 @@ You can deploy the agent instance either [using GitHub actions](#deploy-the-serv
 1. **Set up your AWS account.** Sign in to the AWS Management Console and configure the following parameters.
 
    1. In case you don't have one, you need to create an IAM user with an access key. Within the AWS Management Console, create a new user (IAM/Users), and [create an access key](https://docs.aws.amazon.com/IAM/latest/UserGuide/id_credentials_access-keys.html) for that user (Security credentials/Access keys). Note down the *AWS Access Key ID* and *AWS Secret Access Key*.
-   2. You also need to [create an *S3 bucket*](https://docs.aws.amazon.com/AmazonS3/latest/userguide/create-bucket-overview.html) to store the Terraform state for the service.[^1] Create the bucket in region `us-east-2`  You must follow the [AWS guidelines](https://docs.aws.amazon.com/AmazonS3/latest/userguide/bucketnamingrules.html) for naming your bucket. Note down the bucket name.
+   2. You also need to [create an *S3 bucket*](https://docs.aws.amazon.com/AmazonS3/latest/userguide/create-bucket-overview.html) to store the Terraform state for the service.[^2] Create the bucket in region `us-east-2`  You must follow the [AWS guidelines](https://docs.aws.amazon.com/AmazonS3/latest/userguide/bucketnamingrules.html) for naming your bucket. Note down the bucket name.
 
-   [^1]: For simplicity, the Terraform scripts in this repository do not implement [state locking](https://developer.hashicorp.com/terraform/language/state/locking). Therefore, it is important to ensure that the script is not executed concurrently by different users in order to prevent potential issues. You might consider implementing state locking in the AWS S3 bucket using [DyanomDB](https://aws.amazon.com/dynamodb/). See for example [this](https://terraformguru.com/terraform-real-world-on-aws-ec2/20-Remote-State-Storage-with-AWS-S3-and-DynamoDB/) or [this](https://blog.gruntwork.io/how-to-manage-terraform-state-28f5697e68fa) tutorial.
+   [^2]: For simplicity, the Terraform scripts in this repository do not implement [state locking](https://developer.hashicorp.com/terraform/language/state/locking). Therefore, it is important to ensure that the script is not executed concurrently by different users in order to prevent potential issues. You might consider implementing state locking in the AWS S3 bucket using [DyanomDB](https://aws.amazon.com/dynamodb/). See for example [this](https://terraformguru.com/terraform-real-world-on-aws-ec2/20-Remote-State-Storage-with-AWS-S3-and-DynamoDB/) or [this](https://blog.gruntwork.io/how-to-manage-terraform-state-28f5697e68fa) tutorial.
 
 1. **Prepare an SSH key pair.** This key pair will be used to access the deployed AWS EC2 instance where the service will be running.
 
@@ -217,9 +219,9 @@ The repository is prepared to deploy the service using GitHub actions. This is t
    ```
 
    > **Warning** <br />
-   > **If you don't want to expose secret/confidential variables in the repository, you can assign them a blank value (or a placeholder value)[^2] in the file `service_vars.env`, and override their values by [defining GitHub secrets](https://docs.github.com/en/actions/security-guides/encrypted-secrets#creating-encrypted-secrets-for-a-repository) matching the corresponding variables' names.**
+   > **If you don't want to expose secret/confidential variables in the repository, you can assign them a blank value (or a placeholder value)[^3] in the file `service_vars.env`, and override their values by [defining GitHub secrets](https://docs.github.com/en/actions/security-guides/encrypted-secrets#creating-encrypted-secrets-for-a-repository) matching the corresponding variables' names.**
 
-   [^2]: The deployment process will override any service-specific variable defined in the `./config/service_vars.env` with any **secret** or **variable** defined in the GitHub repository that matches the variable name. It is important to note that a variable (overridden or not) will be exported to the AWS EC2 instance running the service agent **only** if it is declared in the `./config/service_vars.env` file.
+   [^3]: The deployment process will override any service-specific variable defined in the `./config/service_vars.env` with any **secret** or **variable** defined in the GitHub repository that matches the variable name. It is important to note that a variable (overridden or not) will be exported to the AWS EC2 instance running the service agent **only** if it is declared in the `./config/service_vars.env` file.
 
    </td>
    </tr>
