@@ -124,6 +124,16 @@ validate_keys_json() {
 }
 
 
+trim() {
+    # Removes leading and trailing whitespaces, tabs and newlines from a variable
+	  s="${1}"
+	  s="$(printf "${s}" | sed -z 's/^[[:space:]]*//')"
+	  s="$(printf "${s}" | sed -z 's/[[:space:]]*$//')"
+	  echo "${s}"
+	  return 0    
+}
+
+
 # =========
 # Constants
 # =========
@@ -166,6 +176,11 @@ echo " - SERVICE_REPO_TAG=$SERVICE_REPO_TAG"
 echo " - SERVICE_ID=$SERVICE_ID"
 echo " - GH_TOKEN=$GH_TOKEN"
 echo 
+
+SERVICE_REPO_URL=$(trim "$SERVICE_REPO_URL")
+SERVICE_REPO_TAG=$(trim "$SERVICE_REPO_TAG")
+SERVICE_ID=$(trim "$SERVICE_ID")
+GH_TOKEN=$(trim "$GH_TOKEN")
 
 if [ -z "${SERVICE_REPO_URL// }" ]; then
   echo "Error: Undefined \"SERVICE_REPO_URL\"."
@@ -276,11 +291,31 @@ validate_keys_json "$KEYS_JSON"
 parse_env_file "$SERVICE_VARIABLES_FILE" "$SERVICE_VARIABLES_OVERRIDES"
 
 echo "   - Writing file \"$DEPLOY_SERVICE_SCRIPT_FILE\""
-echo $(eval $DEPLOY_SERVICE_SCRIPT_TEMPLATE) > $DEPLOY_SERVICE_SCRIPT_FILE
+#echo $(eval $DEPLOY_SERVICE_SCRIPT_TEMPLATE) > $DEPLOY_SERVICE_SCRIPT_FILE
+echo "#!/bin/bash
+
+# Deployment script for service \"$SERVICE_ID\" ($SERVICE_REPO_TAG)
+
+echo \"Current user: \$(whoami)\"
+export PATH=\"\$PATH:/home/ubuntu/.local/bin\"
+echo \"Environment variables:\"
+env
+pip install requests==2.28.1
+autonomy init --remote --author open_operator --reset
+autonomy fetch $SERVICE_HASH --service
+cd \$(ls -td -- */ | head -n 1)
+autonomy build-image
+cat > keys.json << EOF
+$KEYS_JSON
+EOF
+$SERVICE_VARIABLES_PARSED
+autonomy deploy build
+cd abci_build && screen -dmS service_screen_session bash -c \"autonomy deploy run\"
+echo \"Service deployment finished. Use 'screen -r service_screen_session' to attach to the session running the agent.\"" > $DEPLOY_SERVICE_SCRIPT_FILE
 
 # ------------------------------------------------------------------------------
 echo " - Changing permissions to file \"$DEPLOY_SERVICE_SCRIPT_FILE\""
 chmod 764 $DEPLOY_SERVICE_SCRIPT_FILE
 
 echo 
-echo "Finished generating \"$DEPLOY_SERVICE_SCRIPT_FILE\" script"
+echo "Finished generating \"$DEPLOY_SERVICE_SCRIPT_FILE\" script ($(du -b "$DEPLOY_SERVICE_SCRIPT_FILE" | cut -f1) B)"
