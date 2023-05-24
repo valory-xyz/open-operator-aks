@@ -1,4 +1,4 @@
-name: Deploy service
+name: Deploy service (AWS, Docker Compose)
 
 on:
   workflow_dispatch:
@@ -8,7 +8,7 @@ jobs:
   deploy-infra:
     environment: production
     runs-on: ubuntu-latest
-    name: Deploy infrastructure and service to AWS
+    name: Deploy service (AWS, Docker Compose)
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
