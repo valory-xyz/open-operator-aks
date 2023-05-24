@@ -124,16 +124,6 @@ validate_keys_json() {
 }
 
 
-trim() {
-    # Removes leading and trailing whitespaces, tabs and newlines from a variable
-	  s="${1}"
-	  s="$(printf "${s}" | sed -z 's/^[[:space:]]*//')"
-	  s="$(printf "${s}" | sed -z 's/[[:space:]]*$//')"
-	  echo "${s}"
-	  return 0    
-}
-
-
 # =========
 # Constants
 # =========
@@ -176,11 +166,6 @@ echo " - SERVICE_REPO_TAG=$SERVICE_REPO_TAG"
 echo " - SERVICE_ID=$SERVICE_ID"
 echo " - GH_TOKEN=$GH_TOKEN"
 echo 
-
-SERVICE_REPO_URL=$(trim "$SERVICE_REPO_URL")
-SERVICE_REPO_TAG=$(trim "$SERVICE_REPO_TAG")
-SERVICE_ID=$(trim "$SERVICE_ID")
-GH_TOKEN=$(trim "$GH_TOKEN")
 
 if [ -z "${SERVICE_REPO_URL// }" ]; then
   echo "Error: Undefined \"SERVICE_REPO_URL\"."
