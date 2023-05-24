@@ -180,7 +180,7 @@ The repository is prepared to deploy the service using GitHub actions. This is t
    </thead>
    <tbody>
    <tr>
-   <td>
+   <td valign="top">
 
    `./config/keys.json`
 
@@ -202,7 +202,7 @@ The repository is prepared to deploy the service using GitHub actions. This is t
    </td>
    </tr>
    <tr>
-   <td>
+   <td valign="top">
 
    `./config/service_vars.env`
 
