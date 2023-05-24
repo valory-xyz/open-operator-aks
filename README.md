@@ -224,7 +224,7 @@ The repository is prepared to deploy the service using GitHub actions. This is t
    [^3]: The deployment process will override any service-specific variable defined in the `./config/service_vars.env` with any **secret** or **variable** defined in the GitHub repository that matches the variable name. It is important to note that a variable (overridden or not) will be exported to the AWS EC2 instance running the service agent **only** if it is declared in the `./config/service_vars.env` file.
 
    > **Warning** <br />
-   > **For security reasons, the following service-specific variables in the file `service_vars.env` will not be overridden: <code>AWS_ACCESS_KEY_ID</code>, <code>AWS_SECRET_ACCESS_KEY</code>, <code>OPERATOR_SSH_PRIVATE_KEY</code>, <code>GH_TOKEN</code>, <code>TFSTATE_S3_BUCKET</code>.**
+   > **For security reasons, the following service-specific variables in the file `service_vars.env` will not be overridden: <code>AWS_ACCESS_KEY_ID</code>, <code>AWS_SECRET_ACCESS_KEY</code>, <code>OPERATOR_SSH_PRIVATE_KEY</code>, <code>GH_TOKEN</code>, <code>KEYS_JSON</code>, <code>TFSTATE_S3_BUCKET</code>.**
 
    </td>
    </tr>

@@ -38,6 +38,7 @@
 #   - keys.json context is read from the file "./config/keys.json" and
 #     overriden if the identifier KEYS_JSON is found in any context.
 
+set -e
 
 parse_env_file() {
     # Overrides an .env file containing variables.
@@ -91,6 +92,11 @@ validate_keys_json() {
 
     KEYS_JSON_T="$1"
 
+    if [ -z "${KEYS_JSON_T// }" ]; then
+      echo "Error: \"KEYS_JSON\" not defined. Please review repository secrets and the file \"$SERVICE_KEYS_JSON_FILE\". Exiting script."
+      exit 1
+    fi
+
     # Validate KEYS_JSON format
     if ! echo "$KEYS_JSON_T" | jq -e '. | type == "array" and length > 0 and all(.[]; type == "object" and (.address | type == "string") and (.private_key | type == "string"))' > /dev/null; then
       echo "Error: KEYS_JSON does not match the expected pattern. Exiting script."
@@ -141,7 +147,7 @@ SERVICE_VARIABLES_FILE="./config/service_vars.env"
 SERVICE_KEYS_JSON_FILE="./config/keys.json"
 
 DEPLOY_SERVICE_SCRIPT_FILE="deploy_service.sh"
-DEPLOY_SERVICE_SCRIPT_TEMPLATE="#!/bin/bash
+DEPLOY_SERVICE_SCRIPT_TEMPLATE='#!/bin/bash
 
 # Deployment script for service \"$SERVICE_ID\" ($SERVICE_REPO_TAG)
 
@@ -160,7 +166,8 @@ EOF
 $SERVICE_VARIABLES_PARSED
 autonomy deploy build
 cd abci_build && screen -dmS service_screen_session bash -c \"autonomy deploy run\"
-echo \"Service deployment finished. Use 'screen -r service_screen_session' to attach to the session running the agent.\""
+echo \"Service deployment finished. Use \\\"screen -r service_screen_session\\\" to attach to the session running the agent.\"
+'
 
 
 # ==================
@@ -266,52 +273,30 @@ if [[ -z "${SECRETS_CONTEXT// }" ]]; then
     SECRETS_CONTEXT="{}"
 fi
 
-echo "   - Joining context variables into a single JSON"
-SERVICE_VARIABLES_OVERRIDES=$(echo "$VARS_CONTEXT $SECRETS_CONTEXT" | jq -s add)
-
-echo "   - Removing known secrets"
-SERVICE_VARIABLES_OVERRIDES=$(echo "$SERVICE_VARIABLES_OVERRIDES" | jq 'del(.AWS_ACCESS_KEY_ID, .AWS_SECRET_ACCESS_KEY, .GH_TOKEN, .OPERATOR_SSH_PRIVATE_KEY, .TFSTATE_S3_BUCKET)')
-
 echo "   - Setting the contents of \"KEYS_JSON\""
 KEYS_JSON=""
-if [[ $(echo "$SERVICE_VARIABLES_OVERRIDES" | jq '.KEYS_JSON') != "null" ]]; then
+if [[ $(echo "$SECRETS_CONTEXT" | jq '.KEYS_JSON') != "null" ]]; then
   echo "     - Set \"KEYS_JSON\" from context variable"
-  KEYS_JSON=$(echo "$SERVICE_VARIABLES_OVERRIDES" | jq -r '.KEYS_JSON')
+  KEYS_JSON=$(echo "$SECRETS_CONTEXT" | jq -r '.KEYS_JSON')
 elif [ -f $SERVICE_KEYS_JSON_FILE ]; then
   echo "     - Set \"KEYS_JSON\" to file contents \"$SERVICE_KEYS_JSON_FILE\""
   KEYS_JSON=$(<$SERVICE_KEYS_JSON_FILE)
-else
-  echo "Error: \"KEYS_JSON\" not defined in context variable nor in file \"$SERVICE_KEYS_JSON_FILE\"."
-  exit 1
 fi
 
 validate_keys_json "$KEYS_JSON"
+
+echo "   - Joining context variables into a single JSON"
+SERVICE_VARIABLES_OVERRIDES=$(echo "$VARS_CONTEXT $SECRETS_CONTEXT" | jq -s add)
+
+# Remove known required secret names to avoid exporting them as environment variables in the service accidentally
+echo "   - Removing known secrets"
+SERVICE_VARIABLES_OVERRIDES=$(echo "$SERVICE_VARIABLES_OVERRIDES" | jq 'del(.AWS_ACCESS_KEY_ID, .AWS_SECRET_ACCESS_KEY, .GH_TOKEN, .KEYS_JSON, .OPERATOR_SSH_PRIVATE_KEY, .TFSTATE_S3_BUCKET)')
 
 #SERVICE_VARIABLES_PARSED is "returned" in parse_env_file() function
 parse_env_file "$SERVICE_VARIABLES_FILE" "$SERVICE_VARIABLES_OVERRIDES"
 
 echo "   - Writing file \"$DEPLOY_SERVICE_SCRIPT_FILE\""
-#echo $(eval $DEPLOY_SERVICE_SCRIPT_TEMPLATE) > $DEPLOY_SERVICE_SCRIPT_FILE
-echo "#!/bin/bash
-
-# Deployment script for service \"$SERVICE_ID\" ($SERVICE_REPO_TAG)
-
-echo \"Current user: \$(whoami)\"
-export PATH=\"\$PATH:/home/ubuntu/.local/bin\"
-echo \"Environment variables:\"
-env
-pip install requests==2.28.1
-autonomy init --remote --author open_operator --reset
-autonomy fetch $SERVICE_HASH --service
-cd \$(ls -td -- */ | head -n 1)
-autonomy build-image
-cat > keys.json << EOF
-$KEYS_JSON
-EOF
-$SERVICE_VARIABLES_PARSED
-autonomy deploy build
-cd abci_build && screen -dmS service_screen_session bash -c \"autonomy deploy run\"
-echo \"Service deployment finished. Use 'screen -r service_screen_session' to attach to the session running the agent.\"" > $DEPLOY_SERVICE_SCRIPT_FILE
+echo "$(eval "echo \"$DEPLOY_SERVICE_SCRIPT_TEMPLATE\"")" > $DEPLOY_SERVICE_SCRIPT_FILE
 
 # ------------------------------------------------------------------------------
 echo " - Changing permissions to file \"$DEPLOY_SERVICE_SCRIPT_FILE\""
