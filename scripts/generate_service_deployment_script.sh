@@ -93,7 +93,7 @@ validate_keys_json() {
 
     # Validate KEYS_JSON format
     if ! echo "$KEYS_JSON_T" | jq -e '. | type == "array" and length > 0 and all(.[]; type == "object" and (.address | type == "string") and (.private_key | type == "string"))' > /dev/null; then
-      echo "     - Invalid KEYS_JSON format"
+      echo "Error: KEYS_JSON does not match the expected pattern. Exiting script."
       exit 1
     fi
 
@@ -116,12 +116,41 @@ validate_keys_json() {
     done
 
     if [ $errors -gt 0 ]; then
-      echo "     - Invalid KEYS_JSON format"
+      echo "Error: KEYS_JSON does not match the expected pattern. Exiting script."
       exit 1
     fi
 
     echo "     - KEYS_JSON format is valid"
 }
+
+
+# =========
+# Constants
+# =========
+SERVICE_VARIABLES_FILE="./config/service_vars.env"
+SERVICE_KEYS_JSON_FILE="./config/keys.json"
+
+DEPLOY_SERVICE_SCRIPT_FILE="deploy_service.sh"
+DEPLOY_SERVICE_SCRIPT_TEMPLATE="#!/bin/bash
+
+# Deployment script for service \"$SERVICE_ID\" ($SERVICE_REPO_TAG)
+
+echo \"Current user: \$(whoami)\"
+export PATH=\"\$PATH:/home/ubuntu/.local/bin\"
+echo \"Environment variables:\"
+env
+pip install requests==2.28.1
+autonomy init --remote --author open_operator --reset
+autonomy fetch $SERVICE_HASH --service
+cd \$(ls -td -- */ | head -n 1)
+autonomy build-image
+cat > keys.json << EOF
+$KEYS_JSON
+EOF
+$SERVICE_VARIABLES_PARSED
+autonomy deploy build
+cd abci_build && screen -dmS service_screen_session bash -c \"autonomy deploy run\"
+echo \"Service deployment finished. Use 'screen -r service_screen_session' to attach to the session running the agent.\""
 
 
 # ==================
@@ -148,15 +177,11 @@ if [ -z "${SERVICE_ID// }" ]; then
   exit 1
 fi
 
-echo "Steps:"
-
-# ------------------------------------------------------------------------------
 OWNER=$(echo "$SERVICE_REPO_URL" | cut -d'/' -f4)
 REPO=$(echo "$SERVICE_REPO_URL" | cut -d'/' -f5)
 API_URL="https://api.github.com/repos/$OWNER/$REPO"
-DEPLOY_SERVICE_SCRIPT="deploy_service.sh"
-SERVICE_VARIABLES_FILE="./config/service_vars.env"
-SERVICE_KEYS_JSON_FILE="./config/keys.json"
+
+echo "Steps:"
 
 # ------------------------------------------------------------------------------
 echo " - Testing repository access"
@@ -250,28 +275,12 @@ validate_keys_json "$KEYS_JSON"
 #SERVICE_VARIABLES_PARSED is "returned" in parse_env_file() function
 parse_env_file "$SERVICE_VARIABLES_FILE" "$SERVICE_VARIABLES_OVERRIDES"
 
-echo "   - Writing file \"$DEPLOY_SERVICE_SCRIPT\""
-echo "# Deployment script for service \"$SERVICE_ID\" ($SERVICE_REPO_TAG)
+echo "   - Writing file \"$DEPLOY_SERVICE_SCRIPT_FILE\""
+echo $(eval $DEPLOY_SERVICE_SCRIPT_TEMPLATE) > $DEPLOY_SERVICE_SCRIPT_FILE
 
-echo \"Current user: \$(whoami)\"
-export PATH=\"\$PATH:/home/ubuntu/.local/bin\"
-echo "Environment variables:"
-env
-pip install requests==2.28.1
-autonomy init --remote --author open_operator --reset
-autonomy fetch $SERVICE_HASH --service
-cd \$(ls -td -- */ | head -n 1)
-autonomy build-image
-cat > keys.json << EOF
-$KEYS_JSON
-EOF
-$SERVICE_VARIABLES_PARSED
-autonomy deploy build
-cd abci_build && screen -dmS service_screen_session bash -c \"autonomy deploy run\"
-echo \"Service deployment finished. Use 'screen -r service_screen_session' to attach to the session running the agent.\"" > $DEPLOY_SERVICE_SCRIPT
-
-echo " - Changing permissions to file \"$DEPLOY_SERVICE_SCRIPT\""
-chmod 764 $DEPLOY_SERVICE_SCRIPT
+# ------------------------------------------------------------------------------
+echo " - Changing permissions to file \"$DEPLOY_SERVICE_SCRIPT_FILE\""
+chmod 764 $DEPLOY_SERVICE_SCRIPT_FILE
 
 echo 
-echo "Finished generating \"$DEPLOY_SERVICE_SCRIPT\""
+echo "Finished generating \"$DEPLOY_SERVICE_SCRIPT_FILE\" script"
