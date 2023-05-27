@@ -29,6 +29,7 @@
 #     If not defined, the script will automatically collect the latest tag.
 #   - (Optional) GH_TOKEN: Github personal access token, required to access
 #     private repositories.
+#   - (Optional) DEPLOYMENT_TYPE: Either "docker" or "kubernetes".
 #   - (Optional) VARS_CONTEXT: JSON context with Github variables.
 #   - (Optional) SECRETS_CONTEXT: JSON context with Github secrets.
 #
@@ -155,7 +156,6 @@ echo \"Current user: \$(whoami)\"
 export PATH=\"\$PATH:/home/ubuntu/.local/bin\"
 echo \"Environment variables:\"
 env
-pip install requests==2.28.1
 autonomy init --remote --author open_operator --reset
 autonomy fetch $SERVICE_HASH --service
 cd \$(ls -td -- */ | head -n 1)
@@ -164,7 +164,7 @@ cat > keys.json << EOF
 $KEYS_JSON
 EOF
 $SERVICE_VARIABLES_PARSED
-autonomy deploy build
+autonomy deploy build $DEPLOYMENT_TYPE
 cd abci_build && screen -dmS service_screen_session bash -c \"autonomy deploy run\"
 echo \"Service deployment finished. Use \\\"screen -r service_screen_session\\\" to attach to the session running the agent.\"
 '
@@ -197,6 +197,15 @@ fi
 if [ -z "${SERVICE_ID// }" ]; then
   echo "Error: Undefined \"SERVICE_ID\"."
   exit 1
+fi
+
+if [ -z "${DEPLOYMENT_TYPE// }" ]; then
+    DEPLOYMENT_TYPE="--docker"
+elif [[ "$DEPLOYMENT_TYPE" = "docker" || "$DEPLOYMENT_TYPE" = "kubernetes" ]]; then
+    DEPLOYMENT_TYPE="--$DEPLOYMENT_TYPE"
+else
+    echo "Error: Invalid DEPLOYMENT_TYPE. Allowed values are 'docker' or 'kubernetes'."
+    exit 1
 fi
 
 OWNER=$(echo "$SERVICE_REPO_URL" | cut -d'/' -f4)

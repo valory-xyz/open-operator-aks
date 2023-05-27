@@ -83,6 +83,16 @@ install_autonomy (){
 		exit 1
 	fi
 
+    # Patch for issue https://github.com/docker/docker-py/issues/3113
+	echo "Installing Python requests @2.28.1 for user $USER"
+	output=$(sudo -u $USER pip3 install --user pip install requests==2.28.1 --force --no-cache-dir)
+	if [[  $? -ne 0 ]];
+	then
+		echo "$output"
+		echo '\n\nFailed to install requests'
+		exit 1
+	fi	
+
 	output=$(su - $USER -c "aea --help" 2>&1)
 	if [[  $? -ne 0 ]];
 	then
@@ -122,7 +132,7 @@ install_docker(){
 	if [[  $? -ne 0 ]];
 	then
 		echo "$output"
-		echo -n '\n\nFailed to install Docker!'
+		echo -n '\n\nFailed to install Docker'
 		exit 1
 	fi
 }
