@@ -22,9 +22,10 @@ jobs:
           aws-region: us-east-2
 
       - name: Derive SSH public key from private key for the AWS EC2 instance
+        env:
+          PRIVATE_KEY: ${{ secrets.OPERATOR_SSH_PRIVATE_KEY }}
         run: |
-          OPERATOR_SSH_PUBLIC_KEY=$(ssh-keygen -y -f <(echo "${{ secrets.OPERATOR_SSH_PRIVATE_KEY }}"))
-          echo "TF_VAR_operator_ssh_pub_key=$OPERATOR_SSH_PUBLIC_KEY" >> "$GITHUB_ENV"
+          ./scripts/store_public_private_keys.sh
 
       - name: Set up Terraform Version
         uses: hashicorp/setup-terraform@v2

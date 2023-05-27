@@ -33,38 +33,10 @@ jobs:
           aws-region: us-east-2
 
       - name: Derive SSH public key from private key for the AWS EC2 instance
+        env:
+          PRIVATE_KEY: ${{ secrets.OPERATOR_SSH_PRIVATE_KEY }}
         run: |
-          mkdir -p ~/.ssh
-          PRIVATE_KEY="${{ secrets.OPERATOR_SSH_PRIVATE_KEY }}"
-          PUBLIC_KEY=$(ssh-keygen -y -f <(echo "$PRIVATE_KEY"))
-          
-          if [[ $PUBLIC_KEY == ssh-rsa* ]]; then
-              KEY_TYPE="rsa"
-          elif [[ $PUBLIC_KEY == ssh-dss* ]]; then
-              KEY_TYPE="dsa"
-          elif [[ $PUBLIC_KEY == ssh-ed25519* ]]; then
-              KEY_TYPE="ed25519"
-          elif [[ $PUBLIC_KEY == ssh-ecdsa* ]]; then
-              KEY_TYPE="ecdsa"
-          else
-              echo "Error: Unsupported SSH key type."
-              exit 1
-          fi
-
-          PRIVATE_KEY_FILE="$HOME/.ssh/id_$KEY_TYPE"
-          PUBLIC_KEY_FILE="$HOME/.ssh/id_${KEY_TYPE}.pub"
-
-          echo "$PRIVATE_KEY" > "$PRIVATE_KEY_FILE"
-          chmod 600 "$PRIVATE_KEY_FILE"
-
-          echo "$PUBLIC_KEY" > "$PUBLIC_KEY_FILE"
-          chmod 644 "$PUBLIC_KEY_FILE"
-
-          echo "PRIVATE_KEY_FILE=$PRIVATE_KEY_FILE" >> "$GITHUB_ENV"
-          echo "PUBLIC_KEY_FILE=$PUBLIC_KEY_FILE" >> "$GITHUB_ENV"
-
-          echo "Private and public keys have been stored in $PRIVATE_KEY_FILE and $PUBLIC_KEY_FILE respectively."
-
+          ./scripts/store_public_private_keys.sh
 
       - name: Set up Terraform Version
         uses: hashicorp/setup-terraform@v2
