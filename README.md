@@ -18,7 +18,11 @@ This repository contains tooling to deploy autonomous service agent(s) on Amazon
 
 [^1]: If you wish to deploy on another AWS Region, you need to modify the Terraform variable `deployment_region` in the file `./cloud_resources/aws/docker_compose/variables.tf`. You also need to provide a valid Amazon Machine Image (AMI) ID for that region (resource `aws_instance` in the file `./cloud_resources/aws/docker_compose/main.tf`), otherwise the deployment process will fail on `terraform apply`.
 
-You can deploy the agent instance either [using GitHub actions](#deploy-the-service-using-github-actions) or cloning the repository locally on your machine and [executing the commands manually]((#deploy-the-service-using-the-cli)).
+The repository is prepared to easily deploy your service [using GitHub actions](#deploy-the-service-using-github-actions). You can also clone the repository locally on your machine and [executing the commands manually]((#deploy-the-service-using-the-cli)).
+
+<p align="center">
+   <img src="./docs/images/deploy-steps.svg">
+</p>
 
 > **Note** <br />
 > **This repository contains default configuration parameters for the Autonomous Keeper Service (AKS) in the `./config/service_vars.env` file. To deploy this particular service, you will also need to set these variables:**
@@ -54,8 +58,8 @@ You can deploy the agent instance either [using GitHub actions](#deploy-the-serv
 
 The repository is prepared to deploy the service using GitHub actions. This is the easiest way to deploy your service.
 
-1. **Clone this repository.**
-2. **Define the following [secrets](https://docs.github.com/en/actions/security-guides/encrypted-secrets#creating-encrypted-secrets-for-a-repository) and [variables](https://docs.github.com/en/actions/learn-github-actions/variables#creating-configuration-variables-for-a-repository) in the cloned repository:**
+1. **Fork this repository.**
+2. **Define the following [secrets](https://docs.github.com/en/actions/security-guides/encrypted-secrets#creating-encrypted-secrets-for-a-repository) and [variables](https://docs.github.com/en/actions/learn-github-actions/variables#creating-configuration-variables-for-a-repository) in the forked repository:**
 
    > **Warning** <br />
    > **Please make sure to avoid any leading or trailing white spaces or newlines when defining secrets and variables.**
