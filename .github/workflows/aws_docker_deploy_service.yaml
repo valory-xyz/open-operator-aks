@@ -6,7 +6,6 @@ on:
 
 jobs:
   deploy-infra:
-    environment: production
     runs-on: ubuntu-latest
     continue-on-error: False
     name: Deploy service (AWS, Docker Compose)
@@ -32,7 +31,7 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: us-east-2
 
-      - name: Derive SSH public key from private key for the AWS EC2 instance
+      - name: Store SSH public and private keys
         env:
           PRIVATE_KEY: ${{ secrets.OPERATOR_SSH_PRIVATE_KEY }}
         run: |

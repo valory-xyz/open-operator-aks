@@ -51,4 +51,4 @@ echo "PUBLIC_KEY_FILE=$PUBLIC_KEY_FILE" >> "$GITHUB_ENV"
 echo "TF_VAR_operator_ssh_pub_key_path=$PUBLIC_KEY_FILE" >> "$GITHUB_ENV"
 
 echo "Private and public keys have been stored in \"$PRIVATE_KEY_FILE\" and \"$PUBLIC_KEY_FILE\" respectively."
-echo "Public key file path has been stored in Terraform variable \"TF_VAR_operator_ssh_pub_key_path\""
+echo "Public key file path has been stored in Terraform variable \"TF_VAR_operator_ssh_pub_key_path\"."
