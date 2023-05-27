@@ -8,6 +8,7 @@ jobs:
   deploy-infra:
     environment: production
     runs-on: ubuntu-latest
+    continue-on-error: False
     name: Deploy service (AWS, Docker Compose)
     steps:
       - name: Checkout code
