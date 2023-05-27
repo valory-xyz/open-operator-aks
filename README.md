@@ -18,7 +18,7 @@ This repository contains tooling to deploy autonomous service agent(s) on Amazon
 
 [^1]: If you wish to deploy on another AWS Region, you need to modify the Terraform variable `deployment_region` in the file `./cloud_resources/aws/docker_compose/variables.tf`. You also need to provide a valid Amazon Machine Image (AMI) ID for that region (resource `aws_instance` in the file `./cloud_resources/aws/docker_compose/main.tf`), otherwise the deployment process will fail on `terraform apply`.
 
-The repository is prepared to easily deploy your service [using GitHub actions](#deploy-the-service-using-github-actions). You can also clone the repository locally on your machine and [executing the commands manually]((#deploy-the-service-using-the-cli)).
+The repository is prepared to easily deploy your service [using GitHub actions](#deploy-the-service-using-github-actions). You can also clone the repository locally on your machine and [execute the commands manually]((#deploy-the-service-using-the-cli)).
 
 <p align="center">
    <img src="./docs/images/deploy-steps.svg">
