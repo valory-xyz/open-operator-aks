@@ -96,8 +96,8 @@ jobs:
   
       - name: Copy and execute the service deployment script on the AWS EC2 instance
         run: | 
-          scp -v -o StrictHostKeyChecking=no -i ${{ vars.PRIVATE_KEY_FILE }} ./deploy_service.sh ubuntu@${{ env.INSTANCE_PUBLIC_IP }}:~
-          ssh -v -o StrictHostKeyChecking=no -i ${{ vars.PRIVATE_KEY_FILE }} ubuntu@${{ env.INSTANCE_PUBLIC_IP }} 'nohup ~/deploy_service.sh > deploy_service.log 2>&1 &'
+          scp -v -o StrictHostKeyChecking=no -i ${{ env.PRIVATE_KEY_FILE }} ./deploy_service.sh ubuntu@${{ env.INSTANCE_PUBLIC_IP }}:~
+          ssh -v -o StrictHostKeyChecking=no -i ${{ env.PRIVATE_KEY_FILE }} ubuntu@${{ env.INSTANCE_PUBLIC_IP }} 'nohup ~/deploy_service.sh > deploy_service.log 2>&1 &'
 
       - name: Summary
         run: |
