@@ -301,7 +301,7 @@ Follow these steps:
 2. **Define the following environment variables.** See the description of the variables in Step 2 in the [section above](#deploy-the-service-using-github-actions).
 
    ```bash
-   export TF_VAR_operator_ssh_pub_key=$(cat path/to/your/ssh_public_key)
+   export TF_VAR_operator_ssh_pub_key_path=<path/to/your/ssh_public_key>
 
    export TFSTATE_S3_BUCKET=<tfstate_s3_bucket>
    export SERVICE_REPO_URL=https://github.com/<owner>/<repo>
