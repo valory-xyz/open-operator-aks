@@ -24,14 +24,15 @@
 mkdir -p ~/.ssh
 PUBLIC_KEY=$(ssh-keygen -y -f <(echo "$PRIVATE_KEY"))
 
+# Amazon EC2 supports ED25519 and 2048-bit SSH-2 RSA keys for Linux instances.
 if [[ $PUBLIC_KEY == ssh-rsa* ]]; then
     KEY_TYPE="rsa"
-elif [[ $PUBLIC_KEY == ssh-dss* ]]; then
-    KEY_TYPE="dsa"
 elif [[ $PUBLIC_KEY == ssh-ed25519* ]]; then
     KEY_TYPE="ed25519"
-elif [[ $PUBLIC_KEY == ssh-ecdsa* ]]; then
-    KEY_TYPE="ecdsa"
+#elif [[ $PUBLIC_KEY == ssh-ecdsa* ]]; then
+#    KEY_TYPE="ecdsa"
+#elif [[ $PUBLIC_KEY == ssh-dss* ]]; then
+#    KEY_TYPE="dsa"
 else
     echo "Error: Unsupported SSH key type."
     exit 1
