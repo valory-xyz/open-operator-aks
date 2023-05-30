@@ -76,7 +76,7 @@ parse_env_file() {
         # Override variables in $VARS if existing in JSON
         if [[ -n "${VAR_VALUE// }" ]] && grep -q "export $VAR_NAME=" <<< "export $VARS="; then
             echo "     - Overriding variable $VAR_NAME"
-            VARS=$(echo "$VARS" | sed "s#export $VAR_NAME=.*#export $VAR_NAME=\"$VAR_VALUE\"#")
+            VARS=$(echo "$VARS" | sed "s#export $VAR_NAME=.*#export $VAR_NAME=$VAR_VALUE#")
         fi
     done
 
