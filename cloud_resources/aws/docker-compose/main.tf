@@ -55,7 +55,7 @@ resource "aws_route_table_association" "subnet-association" {
 
 resource "aws_key_pair" "operator_ssh_pub_key" {
   key_name   = "operator_ssh_pub_key"
-  public_key = file(var.operator_ssh_pub_key_path)  
+  public_key = file(var.operator_ssh_pub_key_path)
 }
 
 resource "aws_instance" "ubuntu-host" {
