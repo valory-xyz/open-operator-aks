@@ -45,17 +45,17 @@ jobs:
 
       - name: Terraform Init
         run: |
-          cd cloud_resources/aws/docker-compose
+          cd infra/aws/docker-compose
           terraform init -backend-config="bucket=${{ vars.TFSTATE_S3_BUCKET }}"
 
       - name: Terraform Plan
         run: |
-          cd cloud_resources/aws/docker-compose
+          cd infra/aws/docker-compose
           terraform plan
 
       - name: Terraform Deploy
         run: |
-          cd cloud_resources/aws/docker-compose
+          cd infra/aws/docker-compose
           terraform apply -auto-approve
           echo "INSTANCE_ID=$(terraform output -raw instance_id)" >> "$GITHUB_ENV"
           echo "INSTANCE_PUBLIC_IP=$(terraform output -raw instance_public_ip)" >> "$GITHUB_ENV"

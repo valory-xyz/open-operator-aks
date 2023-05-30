@@ -22,7 +22,7 @@ This repository contains tooling to deploy autonomous service agent(s) on Amazon
 
 After the deployment process finishes, the agent will be running in a [`screen`](https://www.gnu.org/software/screen/) session within an [AWS EC2](https://aws.amazon.com/ec2/) instance in the default AWS Region `us-east-2`.[^1]
 
-[^1]: If you wish to deploy on another AWS Region, you need to modify the Terraform variable `deployment_region` in the file `./cloud_resources/aws/docker_compose/variables.tf`. You also need to provide a valid Amazon Machine Image (AMI) ID for that region (resource `aws_instance` in the file `./cloud_resources/aws/docker_compose/main.tf`), otherwise the deployment process will fail on `terraform apply`.
+[^1]: If you wish to deploy on another AWS Region, you need to modify the Terraform variable `deployment_region` in the file `./infra/aws/docker_compose/variables.tf`. You also need to provide a valid Amazon Machine Image (AMI) ID for that region (resource `aws_instance` in the file `./infra/aws/docker_compose/main.tf`), otherwise the deployment process will fail on `terraform apply`.
 
 > **Note** <br />
 > **This repository contains default configuration parameters for the Autonomous Keeper Service (AKS) in the `./config/service_vars.env` file. To deploy this particular service, you will also need to set these variables:**
@@ -333,7 +333,7 @@ Follow these steps:
    1. Deploy the infrastructure:
 
       ```bash
-      cd cloud_resources/aws/docker-compose/
+      cd ./infra/aws/docker-compose/
       terraform init -backend-config="bucket=$TFSTATE_S3_BUCKET"
       terraform plan
       terraform apply
@@ -380,7 +380,7 @@ Follow these steps:
 5. **Destroy the infrastructure.**
 
    ```bash
-   cd ./cloud_resources/aws/docker-compose/
+   cd ./infra/aws/docker-compose/
    terraform destroy
    ```
 
