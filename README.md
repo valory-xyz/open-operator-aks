@@ -24,15 +24,6 @@ After the deployment process finishes, the agent will be running in a [`screen`]
 
 [^1]: If you wish to deploy on another AWS Region, you need to modify the Terraform variable `deployment_region` in the file `./infra/aws/docker_compose/variables.tf`. You also need to provide a valid Amazon Machine Image (AMI) ID for that region (resource `aws_instance` in the file `./infra/aws/docker_compose/main.tf`), otherwise the deployment process will fail on `terraform apply`.
 
-> **Note** <br />
-> **This repository contains default configuration parameters for the Autonomous Keeper Service (AKS) in the `./config/service_vars.env` file. To deploy this particular service, you will also need to set these variables:**
->
-> - **`SERVICE_REPO_URL`: <https://github.com/valory-xyz/agent-academy-2>**
-> - **`SERVICE_ID`: `valory/keep3r_bot_goerli:0.1.0` (for Görli testnet) or `valory/keep3r_bot:0.1.0` (for Ethereum mainnet)**
-> - **(Optional) `SERVICE_REPO_TAG`: `v0.3.0`**
->
-> **See the complete instructions below.**
-
 ## Prerequisites
 
 1. **Set up your AWS account.** Sign in to the AWS Management Console and configure the following parameters.
@@ -53,6 +44,17 @@ After the deployment process finishes, the agent will be running in a [`screen`]
    Make sure to use one of the [supported AWS EC2 key pairs](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-key-pairs.html). You can also use the [AWS Management Console to create a key pair](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/create-key-pairs.html). Store securely both the public and private key.
 
 3. **Prepare the service repository data.**
+
+- This repository contains default configuration parameters for the Autonomous Keeper Service (AKS) in the `./config/service_vars.env` file. 
+
+- You will also need to set these variables:**
+>
+> - **`SERVICE_REPO_URL`**: <https://github.com/valory-xyz/agent-academy-2>
+> - **`SERVICE_ID`**: `valory/keep3r_bot_goerli:0.1.0` **for Görli testnet** or `valory/keep3r_bot:0.1.0` **for Ethereum mainnet**
+> - **(Optional) `SERVICE_REPO_TAG`** : `v0.3.0`
+
+
+
    - Note down the *service repository URL*, the *public ID of the service*, and the *release tag* corresponding to the version of the service you want to deploy. If you don't define the release tag, the script will deploy the latest available release.
    - You also need to prepare the required *service configuration parameters* (`service_vars.env`) and the *agent keys file* (`keys.json`). See the details below.
    - Ensure that the GitHub repository of the service is publicly accessible. If it is a private repository, your GitHub user has to be authorized to access it, and you need to [create a *GitHub personal access token*](https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/creating-a-personal-access-token) with `repo` permissions enabled.
