@@ -57,7 +57,7 @@ The repository is prepared to deploy the service using GitHub actions. This is t
 
 1. **Fork this repository.**
 2. **Configure cloud credentials and service parameters.**
-   First, define the following [secrets](https://docs.github.com/en/actions/security-guides/encrypted-secrets#creating-encrypted-secrets-for-a-repository) and [variables](https://docs.github.com/en/actions/learn-github-actions/variables#creating-configuration-variables-for-a-repository) in the forked repository, we recommeng using Github's web UI:
+   First, [define the following secrets](https://docs.github.com/en/actions/security-guides/encrypted-secrets#creating-encrypted-secrets-for-a-repository) and [variables](https://docs.github.com/en/actions/learn-github-actions/variables#creating-configuration-variables-for-a-repository) in the forked repository. We recommend defining them through the GitHub's website UI:
 
    > **Warning** <br />
    > **Please make sure to avoid any leading or trailing white spaces or newlines when defining secrets and variables.**
