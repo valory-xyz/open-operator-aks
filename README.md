@@ -240,7 +240,7 @@ The repository is prepared to deploy the service using GitHub actions. This is t
 
    <p align="center"><img src="docs/images/deploy-service-workflow.png" alt="Deploy service workflow" width=80%></p>
    
-Please wait until the AWS EC2 instance finishes completing the service deployment. The IP of the created AWS EC2 instance can be retrieved for the summary of the "Deploy service" workflow.
+Please wait until the AWS EC2 instance finishes completing the service deployment. The IP of the created AWS EC2 instance can be retrieved for the "Summary" step in the "Deploy service" workflow.
 
 
 4. **Interact with the AWS EC2 instance.** You can connect to the AWS EC2 instance as the user `ubuntu` using the SSH private key specified:
