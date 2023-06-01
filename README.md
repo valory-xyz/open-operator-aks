@@ -39,7 +39,7 @@ After the deployment process finishes, the agent will be running in a [`screen`]
 
 2. **Prepare an SSH key pair.** This key pair will be used to access the deployed AWS EC2 instance where the service will be running.
 
-   You can generate the key pair with the following command and _do not enter a password_ when prompted to do so
+   You can generate the key pair with the following command. **Do not enter a passphrase if prompted to do so:**
 
    ```bash
    ssh-keygen -t rsa -b 2048 -f id_rsa
