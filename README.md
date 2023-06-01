@@ -31,7 +31,7 @@ After the deployment process finishes, the agent will be running in a [`screen`]
 
 1. **Set up your AWS account.** Sign in to the AWS Management Console and configure the following parameters.
 
-   1. In case you don't have one, you need to create an IAM user with an access key. Within the AWS Management Console, create a new user (IAM/Users), and [create an access key](https://docs.aws.amazon.com/IAM/latest/UserGuide/id_credentials_access-keys.html) for that user (Security credentials/Access keys). The IAM user needs have the permissions `AmazonEC2FullAccess`, `AmazonS3FullAccess` and `IAMFullAccess`. Note down the *AWS Access Key ID* and *AWS Secret Access Key*.
+   1. In case you don't have one, you need to create an IAM user with an access key. Within the AWS Management Console, create a new user (IAM/Users), and [create an access key](https://docs.aws.amazon.com/IAM/latest/UserGuide/id_credentials_access-keys.html) for that user (Security credentials/Access keys). The IAM user needs have the permissions `AmazonEC2FullAccess` and `AmazonS3FullAccess`. Note down the *AWS Access Key ID* and *AWS Secret Access Key*.
   
    2. You also need to [create an *S3 bucket*](https://docs.aws.amazon.com/AmazonS3/latest/userguide/create-bucket-overview.html) to store the Terraform state for the service.[^2] Create the bucket in region `us-east-2`.  You must follow the [AWS guidelines](https://docs.aws.amazon.com/AmazonS3/latest/userguide/bucketnamingrules.html) for naming your bucket. Note down the bucket name.
 
@@ -45,7 +45,9 @@ After the deployment process finishes, the agent will be running in a [`screen`]
    ssh-keygen -t rsa -b 2048 -f id_rsa
    ```
 
-   Store securely both the public and private key.
+   Store securely both the public and private key.[^3]
+   
+[^3]: Make sure to use one of the [supported AWS EC2 key pairs](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-key-pairs.html). You can also use the [AWS Management Console to create a key pair](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/create-key-pairs.html).
 
 3. **Prepare the service repository data.**
 
@@ -237,6 +239,8 @@ The repository is prepared to deploy the service using GitHub actions. This is t
 3. **Deploy the infrastructure and the service to AWS.** Run the "Deploy service" workflow using the GitHub interface. This workflow will create the necessary resources on AWS. Once the workflow has finished, the generated AWS EC2 instance will take over with the process of deploying the agent for the service.
 
    <p align="center"><img src="docs/images/deploy-service-workflow.png" alt="Deploy service workflow" width=80%></p>
+   
+Please wait until the AWS EC2 instance finishes completing the service deployment. The IP of the created AWS EC2 instance can be retrieved for the summary of the "Deploy service" workflow.
 
 
 4. **Interact with the AWS EC2 instance.** You can connect to the AWS EC2 instance as the user `ubuntu` using the SSH private key specified:
