@@ -201,7 +201,7 @@ The repository is prepared to deploy the service using GitHub actions. This is t
    ```
 
    > **Warning** <br />
-   > **In general the `keys.json` file should not be exposed in the repository. The recommended practice is to [define the GitHub secret](https://docs.github.com/en/actions/security-guides/encrypted-secrets#creating-encrypted-secrets-for-a-repository) `KEYS_JSON` with the contents of the file.**
+   > **Typically, it is not advisable to expose the `keys.json` file in the repository. As an alternative, we provide a mechanism where you can [define the GitHub secret](https://docs.github.com/en/actions/security-guides/encrypted-secrets#creating-encrypted-secrets-for-a-repository) `KEYS_JSON` with the contents of the file.**
    </td>
    </tr>
    <tr>
