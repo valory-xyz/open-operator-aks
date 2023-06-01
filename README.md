@@ -222,7 +222,7 @@ The repository is prepared to deploy the service using GitHub actions. This is t
    ```
 
    > **Warning** <br />
-   > **If you don't want to expose secret/confidential variables in the repository, you can assign them a blank value (or a placeholder value)[^3] in the file `service_vars.env`, and override their values by [defining GitHub secrets](https://docs.github.com/en/actions/security-guides/encrypted-secrets#creating-encrypted-secrets-for-a-repository) matching the corresponding variables' names. In the present case, we recommend this practice with <code>ARBITRUM_RPC_0</code> and <code>SERVICE_RPC_0</code>.**
+   > **If you don't want to expose secret/confidential variables in the repository, you can assign them a blank value (or a placeholder value)[^3] in the file `service_vars.env`, and override their values by [defining GitHub secrets](https://docs.github.com/en/actions/security-guides/encrypted-secrets#creating-encrypted-secrets-for-a-repository) matching the corresponding variables' names. For the present case (`keep3r_bot` and `keep3r_bot_goerli` services), we recommend this practice with the variables <code>ARBITRUM_RPC_0</code> and <code>SERVICE_RPC_0</code>.**
 
    [^3]: The deployment process will override any service-specific variable defined in the `./config/service_vars.env` with any **secret** or **variable** defined in the GitHub repository that matches the variable name. It is important to note that a variable (overridden or not) will be exported to the AWS EC2 instance running the service agent **only** if it is declared in the `./config/service_vars.env` file.
 
