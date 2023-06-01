@@ -42,7 +42,7 @@ After the deployment process finishes, the agent will be running in a [`screen`]
    You can generate the key pair with the following command. **Do not enter a passphrase if prompted to do so:**
 
    ```bash
-   ssh-keygen -t rsa -b 2048 -f id_rsa
+   ssh-keygen -t rsa -b 2048 -N "" -f id_rsa
    ```
 
    Store securely both the public and private key.
