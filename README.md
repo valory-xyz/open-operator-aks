@@ -37,7 +37,7 @@ After the deployment process finishes, the agent will be running in a [`screen`]
 
    [^2]: For simplicity, the Terraform scripts in this repository do not implement [state locking](https://developer.hashicorp.com/terraform/language/state/locking). Therefore, it is important to ensure that the script is not executed concurrently by different users in order to prevent potential issues. You might consider implementing state locking in the AWS S3 bucket using [DyanomDB](https://aws.amazon.com/dynamodb/). See for example [this](https://terraformguru.com/terraform-real-world-on-aws-ec2/20-Remote-State-Storage-with-AWS-S3-and-DynamoDB/) or [this](https://blog.gruntwork.io/how-to-manage-terraform-state-28f5697e68fa) tutorial.
 
-2. **Prepare an SSH key pair.** This key pair will be used to access the deployed AWS EC2 instance where the service will be running.
+2. **Prepare an SSH key pair.**[^3] This key pair will be used to access the deployed AWS EC2 instance where the service will be running.
 
    You can generate the key pair with the following command. **Do not enter a passphrase if prompted to do so:**
 
@@ -45,9 +45,9 @@ After the deployment process finishes, the agent will be running in a [`screen`]
    ssh-keygen -t rsa -b 2048 -N "" -f id_rsa
    ```
 
-   Store securely both the public and private key.[^3]
-   
-[^3]: Make sure to use one of the [supported AWS EC2 key pairs](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-key-pairs.html). You can also use the [AWS Management Console to create a key pair](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/create-key-pairs.html).
+   Store securely both the public and private key.
+
+   [^3]: Make sure to use one of the [supported AWS EC2 key pairs](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-key-pairs.html). You can also use the [AWS Management Console to create a key pair](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/create-key-pairs.html).
 
 3. **Prepare the service repository data.**
 
@@ -224,9 +224,9 @@ The repository is prepared to deploy the service using GitHub actions. This is t
    ```
 
    > **Warning** <br />
-   > **If you don't want to expose secret/confidential variables in the repository, you can assign them a blank value (or a placeholder value)[^3] in the file `service_vars.env`, and override their values by [defining GitHub secrets](https://docs.github.com/en/actions/security-guides/encrypted-secrets#creating-encrypted-secrets-for-a-repository) matching the corresponding variables' names. For the present case (`keep3r_bot` and `keep3r_bot_goerli` services), we recommend this practice with the variables <code>ARBITRUM_RPC_0</code> and <code>SERVICE_RPC_0</code>.**
+   > **If you don't want to expose secret/confidential variables in the repository, you can assign them a blank value (or a placeholder value)[^4] in the file `service_vars.env`, and override their values by [defining GitHub secrets](https://docs.github.com/en/actions/security-guides/encrypted-secrets#creating-encrypted-secrets-for-a-repository) matching the corresponding variables' names. For the present case (`keep3r_bot` and `keep3r_bot_goerli` services), we recommend this practice with the variables <code>ARBITRUM_RPC_0</code> and <code>SERVICE_RPC_0</code>.**
 
-   [^3]: The deployment process will override any service-specific variable defined in the `./config/service_vars.env` with any **secret** or **variable** defined in the GitHub repository that matches the variable name. It is important to note that a variable (overridden or not) will be exported to the AWS EC2 instance running the service agent **only** if it is declared in the `./config/service_vars.env` file.
+   [^4]: The deployment process will override any service-specific variable defined in the `./config/service_vars.env` with any **secret** or **variable** defined in the GitHub repository that matches the variable name. It is important to note that a variable (overridden or not) will be exported to the AWS EC2 instance running the service agent **only** if it is declared in the `./config/service_vars.env` file.
 
    > **Warning** <br />
    > **For security reasons, even if present in the file `service_vars.env`, the following variables will not be overridden with GitHub secrets or variables: <code>AWS_ACCESS_KEY_ID</code>, <code>AWS_SECRET_ACCESS_KEY</code>, <code>OPERATOR_SSH_PRIVATE_KEY</code>, <code>GH_TOKEN</code>, <code>KEYS_JSON</code>, <code>TFSTATE_S3_BUCKET</code>.**
