@@ -22,39 +22,33 @@ This repository contains tooling to deploy autonomous service agent(s) on Amazon
 
 After the deployment process finishes, the agent will be running in a [`screen`](https://www.gnu.org/software/screen/) session within an [AWS EC2](https://aws.amazon.com/ec2/) instance in the default AWS Region `us-east-2`.[^1]
 
-[^1]: If you wish to deploy on another AWS Region, you need to modify the Terraform variable `deployment_region` in the file `./infra/aws/docker_compose/variables.tf`. You also need to provide a valid Amazon Machine Image (AMI) ID for that region (resource `aws_instance` in the file `./infra/aws/docker_compose/main.tf`), otherwise the deployment process will fail on `terraform apply`.
-
 > **Note** <br />
-> **This repository contains default configuration parameters for the Autonomous Keeper Service (AKS) in the `./config/service_vars.env` file. To deploy this particular service, you will also need to set these variables:**
->
-> - **`SERVICE_REPO_URL`: <https://github.com/valory-xyz/agent-academy-2>**
-> - **`SERVICE_ID`: `valory/keep3r_bot_goerli:0.1.0` (for Görli testnet) or `valory/keep3r_bot:0.1.0` (for Ethereum mainnet)**
-> - **(Optional) `SERVICE_REPO_TAG`: `v0.3.0`**
->
-> **See the complete instructions below.**
+> **This repository contains default configuration parameters in the `./config/service_vars.env` file that you will need to override with the information you will have been provided by the service owner.**
+
+[^1]: If you wish to deploy on another AWS Region, you need to modify the Terraform variable `deployment_region` in the file `./infra/aws/docker_compose/variables.tf`. You also need to provide a valid Amazon Machine Image (AMI) ID for that region (resource `aws_instance` in the file `./infra/aws/docker_compose/main.tf`), otherwise the deployment process will fail on `terraform apply`.
 
 ## Prerequisites
 
 1. **Set up your AWS account.** Sign in to the AWS Management Console and configure the following parameters.
 
-   1. In case you don't have one, you need to create an IAM user with an access key. Within the AWS Management Console, create a new user (IAM/Users), and [create an access key](https://docs.aws.amazon.com/IAM/latest/UserGuide/id_credentials_access-keys.html) for that user (Security credentials/Access keys). Note down the *AWS Access Key ID* and *AWS Secret Access Key*.
+   1. In case you don't have one, you need to create an IAM user with an access key. Within the AWS Management Console, create a new user (IAM/Users), and [create an access key](https://docs.aws.amazon.com/IAM/latest/UserGuide/id_credentials_access-keys.html) for that user (Security credentials/Access keys). The IAM user needs have the permissions `AmazonEC2FullAccess`, `AmazonS3FullAccess` and `IAMFullAccess`. Note down the *AWS Access Key ID* and *AWS Secret Access Key*.
+  
    2. You also need to [create an *S3 bucket*](https://docs.aws.amazon.com/AmazonS3/latest/userguide/create-bucket-overview.html) to store the Terraform state for the service.[^2] Create the bucket in region `us-east-2`.  You must follow the [AWS guidelines](https://docs.aws.amazon.com/AmazonS3/latest/userguide/bucketnamingrules.html) for naming your bucket. Note down the bucket name.
 
    [^2]: For simplicity, the Terraform scripts in this repository do not implement [state locking](https://developer.hashicorp.com/terraform/language/state/locking). Therefore, it is important to ensure that the script is not executed concurrently by different users in order to prevent potential issues. You might consider implementing state locking in the AWS S3 bucket using [DyanomDB](https://aws.amazon.com/dynamodb/). See for example [this](https://terraformguru.com/terraform-real-world-on-aws-ec2/20-Remote-State-Storage-with-AWS-S3-and-DynamoDB/) or [this](https://blog.gruntwork.io/how-to-manage-terraform-state-28f5697e68fa) tutorial.
 
 2. **Prepare an SSH key pair.** This key pair will be used to access the deployed AWS EC2 instance where the service will be running.
 
-   You can generate the key pair yourself, e.g.,
+   You can generate the key pair with the following command. **Do not enter a passphrase if prompted to do so:**
 
    ```bash
-   ssh-keygen -t rsa -b 2048 -f id_rsa
+   ssh-keygen -t rsa -b 2048 -N "" -f id_rsa
    ```
 
-   Make sure to use one of the [supported AWS EC2 key pairs](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-key-pairs.html). You can also use the [AWS Management Console to create a key pair](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/create-key-pairs.html). Store securely both the public and private key.
+   Store securely both the public and private key.
 
 3. **Prepare the service repository data.**
-   - Note down the *service repository URL*, the *public ID of the service*, and the *release tag* corresponding to the version of the service you want to deploy. If you don't define the release tag, the script will deploy the latest available release.
-   - You also need to prepare the required *service configuration parameters* (`service_vars.env`) and the *agent keys file* (`keys.json`). See the details below.
+
    - Ensure that the GitHub repository of the service is publicly accessible. If it is a private repository, your GitHub user has to be authorized to access it, and you need to [create a *GitHub personal access token*](https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/creating-a-personal-access-token) with `repo` permissions enabled.
 
 ## Deploy the service using GitHub actions
@@ -63,7 +57,7 @@ The repository is prepared to deploy the service using GitHub actions. This is t
 
 1. **Fork this repository.**
 2. **Configure cloud credentials and service parameters.**
-   First, define the following [secrets](https://docs.github.com/en/actions/security-guides/encrypted-secrets#creating-encrypted-secrets-for-a-repository) and [variables](https://docs.github.com/en/actions/learn-github-actions/variables#creating-configuration-variables-for-a-repository) in the forked repository:
+   First, [define the following secrets](https://docs.github.com/en/actions/security-guides/encrypted-secrets#creating-encrypted-secrets-for-a-repository) and [variables](https://docs.github.com/en/actions/learn-github-actions/variables#creating-configuration-variables-for-a-repository) in the forked repository. We recommend defining them through the GitHub's website UI:
 
    > **Warning** <br />
    > **Please make sure to avoid any leading or trailing white spaces or newlines when defining secrets and variables.**
@@ -115,7 +109,6 @@ The repository is prepared to deploy the service using GitHub actions. This is t
    <td>
 
    `GH_TOKEN`
-   <b>(Optional)</b>
 
    </td>
    <td>Secret</td>
@@ -141,7 +134,7 @@ The repository is prepared to deploy the service using GitHub actions. This is t
 
    </td>
    <td>Variable</td>
-   <td>Service repository URL. Example:
+   <td>Service repository URL.
 
    `https://github.com/valory-xyz/agent-academy-2`
 
@@ -154,9 +147,11 @@ The repository is prepared to deploy the service using GitHub actions. This is t
 
    </td>
    <td>Variable</td>
-   <td>Public ID of the service. Example:
-
-   `valory/keep3r_bot_goerli:0.1.0`
+   <td>Public ID of the service. 
+      
+    `valory/keep3r_bot_goerli:0.1.0` **for Görli testnet** 
+      
+`valory/keep3r_bot:0.1.0`   **for Ethereum mainnet**
 
    </td>
    </tr>
@@ -168,7 +163,7 @@ The repository is prepared to deploy the service using GitHub actions. This is t
 
    </td>
    <td>Variable</td>
-   <td>Release tag corresponding to the version of the service you want to deploy. If not defined, the script will deploy the latest release. Example:
+   <td>Release tag corresponding to the version of the service you want to deploy. If not defined, the script will deploy the latest release. Currently:
 
    `v.0.3.0`
 
@@ -206,7 +201,7 @@ The repository is prepared to deploy the service using GitHub actions. This is t
    ```
 
    > **Warning** <br />
-   > **If you don't want to expose the `keys.json` file in the repository, you can [define the GitHub secret](https://docs.github.com/en/actions/security-guides/encrypted-secrets#creating-encrypted-secrets-for-a-repository) `KEYS_JSON` with the contents of the file.**
+   > **Typically, it is not advisable to expose the `keys.json` file in the repository. As an alternative, we provide a mechanism where you can [define the GitHub secret](https://docs.github.com/en/actions/security-guides/encrypted-secrets#creating-encrypted-secrets-for-a-repository) `KEYS_JSON` with the contents of the file.**
    </td>
    </tr>
    <tr>
@@ -227,7 +222,7 @@ The repository is prepared to deploy the service using GitHub actions. This is t
    ```
 
    > **Warning** <br />
-   > **If you don't want to expose secret/confidential variables in the repository, you can assign them a blank value (or a placeholder value)[^3] in the file `service_vars.env`, and override their values by [defining GitHub secrets](https://docs.github.com/en/actions/security-guides/encrypted-secrets#creating-encrypted-secrets-for-a-repository) matching the corresponding variables' names.**
+   > **If you don't want to expose secret/confidential variables in the repository, you can assign them a blank value (or a placeholder value)[^3] in the file `service_vars.env`, and override their values by [defining GitHub secrets](https://docs.github.com/en/actions/security-guides/encrypted-secrets#creating-encrypted-secrets-for-a-repository) matching the corresponding variables' names. For the present case (`keep3r_bot` and `keep3r_bot_goerli` services), we recommend this practice with the variables <code>ARBITRUM_RPC_0</code> and <code>SERVICE_RPC_0</code>.**
 
    [^3]: The deployment process will override any service-specific variable defined in the `./config/service_vars.env` with any **secret** or **variable** defined in the GitHub repository that matches the variable name. It is important to note that a variable (overridden or not) will be exported to the AWS EC2 instance running the service agent **only** if it is declared in the `./config/service_vars.env` file.
 
@@ -243,18 +238,6 @@ The repository is prepared to deploy the service using GitHub actions. This is t
 
    <p align="center"><img src="docs/images/deploy-service-workflow.png" alt="Deploy service workflow" width=80%></p>
 
-   You should see the following output in the *Summary* step of the workflow:
-
-   ```text
-   Summary:
-    - Service repository URL: <SERVICE_REPO_URL>
-    - Service repository tag: <SERVICE_REPO_TAG>
-    - Service ID: <SERVICE_ID>
-    - AWS EC2 instance public IP: <AWS_EC2_PUBLIC_IP>
-    - AWS EC2 instance ID: <AWS_EC2_ID>
-
-   Please wait until the AWS EC2 instance finishes completing the service deployment.
-   ```
 
 4. **Interact with the AWS EC2 instance.** You can connect to the AWS EC2 instance as the user `ubuntu` using the SSH private key specified:
 
