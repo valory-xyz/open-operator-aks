@@ -87,3 +87,10 @@ kubectl apply --recursive -f .
 
 
 
+## References
+
+https://repost.aws/knowledge-center/eks-troubleshoot-efs-volume-mount-issues
+https://github.com/kubernetes-sigs/nfs-subdir-external-provisioner#with-helm
+https://github.com/kubernetes-sigs/nfs-subdir-external-provisioner/blob/master/charts/nfs-subdir-external-provisioner/README.md
+
+https://github.com/kubernetes-sigs/aws-efs-csi-driver/tree/master/examples/kubernetes/dynamic_provisioning
